@@ -36,7 +36,7 @@ class LoginWindow(QWidget):
 
         # --- Company logo, always centered and fixed size ---
         img_label = QLabel()
-        pixmap = QPixmap("resources/icons/EW_vertical_logo_1000x702-removebg-preview.png")
+        pixmap = QPixmap("resources/icons/EW_vertical_logo_1000x702.png")
         img_label.setPixmap(
             pixmap.scaled(350, 350, Qt.AspectRatioMode.KeepAspectRatio,
                           Qt.TransformationMode.SmoothTransformation)
