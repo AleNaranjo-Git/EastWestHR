@@ -1,8 +1,5 @@
 from resources.styles.colors import *
 
-BACKGROUND = "#f5f6fa"  # Un gris muy claro, puedes ajustar el valor si quieres más o menos gris
-# Elimina WHITE si ya no lo usas en otros lados
-
 # Input fields style
 INPUT_STYLE = f"""
     QLineEdit {{
