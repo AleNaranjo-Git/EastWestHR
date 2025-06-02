@@ -26,11 +26,11 @@ class MenuSidebar(QWidget):
     
         self.buttons: Dict[str, QPushButton] = {}
         names = [
-            ("vacaciones", "Solicitar Vacación"),
-            ("permisos", "Solicitar Permiso"),
-            ("constancia", "Constancia Salarial"),
-            ("flc", "FLC"),
-            ("aprobar", "Aprobar Solicitudes")
+            ("Vacaciones", "Solicitar Vacación"),
+            ("Permisos", "Solicitar Permiso"),
+            ("Constancia", "Constancia Salarial"),
+            ("FCL", "FCL"),
+            ("Aprobar", "aprobar Solicitudes")
         ]
 
         for key, label in names:
@@ -44,7 +44,7 @@ class MenuSidebar(QWidget):
         layout.addStretch()
         self.setLayout(layout)
 
-        self.buttons["vacaciones"].setChecked(True)
+        self.buttons["Vacaciones"].setChecked(True)
 
         for btn in self.buttons.values():
             btn.clicked.connect(self._handle_button_checked)
