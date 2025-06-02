@@ -1,4 +1,6 @@
-# styles/colors.py
 PRIMARY_COLOR = "#08a7dd"
+PRIMARY_HOVER = "#07a2cc"
 SECONDARY_COLOR = "#5c6068"
-WHITE = "white"
+BACKGROUND = "#f5f6fa"
+TEXT_COLOR = "#5c6068"
+ERROR_COLOR = "red"
