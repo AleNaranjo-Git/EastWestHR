@@ -43,3 +43,23 @@ ERROR_LABEL_STYLE = f"""
     color: {ERROR_COLOR};
     font-size: 10pt;
 """
+
+SIDEBAR_BUTTON_STYLE = f"""
+    QPushButton {{
+        background-color: transparent;
+        color: {PRIMARY_COLOR};
+        border: none;
+        text-align: left;
+        padding: 12px 20px;
+        font-size: 13pt;
+        border-radius: 12px;
+    }}
+    QPushButton:hover {{
+        background-color: #5c6b73;
+    }}
+    QPushButton:checked {{
+        background-color: {PRIMARY_COLOR};
+        color: {BACKGROUND};
+        font-weight: bold;
+    }}
+"""
