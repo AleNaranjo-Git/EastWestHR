@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedWidget,
 from ui.components.menu_sidebar import MenuSidebar
 from resources.styles.colors import BACKGROUND
 from ui.pages.vacations_page import VacationsPage
+from ui.pages.permits_page import PermitsPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -34,7 +35,10 @@ class MainWindow(QMainWindow):
         
         # Pages
         self.vacations_page = VacationsPage()
+        self.permits_page = PermitsPage()
         
         self.stack.addWidget(self.vacations_page)
+        self.stack.addWidget(self.permits_page)
         
         self.menu.buttons["Vacaciones"].clicked.connect(lambda: self.stack.setCurrentWidget(self.vacations_page))
+        self.menu.buttons["Permisos"].clicked.connect(lambda: self.stack.setCurrentWidget(self.permits_page))
