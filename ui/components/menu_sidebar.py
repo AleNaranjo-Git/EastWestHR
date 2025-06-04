@@ -11,13 +11,11 @@ class MenuSidebar(QWidget):
         self.setFixedWidth(220)
         self.setObjectName("Sidebar")
 
-        # Forzar el fondo con paleta
         palette = self.palette()
         palette.setColor(QPalette.ColorRole.Window, QColor(SIDEBAR_BG))
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        # Solo estilos para los botones
         self.setStyleSheet(SIDEBAR_BUTTON_STYLE)
 
         layout = QVBoxLayout()

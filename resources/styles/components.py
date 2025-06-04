@@ -5,16 +5,18 @@ INPUT_STYLE = f"""
     QLineEdit {{
         border: none;
         border-bottom: 2px solid {SECONDARY_COLOR};
-        padding: 8px 0;
+        padding: 6px 4px;
         font-size: 12pt;
-        color: {TEXT_COLOR};
-        background: transparent;
+        color: {SECONDARY_COLOR};
+        background-color: {BACKGROUND};
     }}
     QLineEdit:focus {{
         border-bottom: 2px solid {PRIMARY_COLOR};
+        outline: none;
     }}
     QLineEdit::placeholder {{
-        color: {TEXT_COLOR};
+        color: {SECONDARY_COLOR};
+        opacity: 0.6;
     }}
 """
 
@@ -26,6 +28,7 @@ BUTTON_STYLE = f"""
         border: none;
         border-radius: 4px;
         font-size: 14pt;
+        height: 40px;
     }}
     QPushButton:hover {{
         background-color: {PRIMARY_HOVER};
@@ -36,6 +39,7 @@ BUTTON_STYLE = f"""
 TITLE_STYLE = f"""
     color: {PRIMARY_COLOR};
     font-size: 24pt;
+    font-weight: 600;
 """
 
 # Error label style
@@ -61,5 +65,26 @@ SIDEBAR_BUTTON_STYLE = f"""
         background-color: {PRIMARY_COLOR};
         color: {BACKGROUND};
         font-weight: bold;
+    }}
+"""
+
+LABEL_STYLE = """
+    font-size: 13pt;
+    color: #5c6068;
+    padding-bottom: 2px;
+    padding-right: 8px;
+"""
+DATE_EDIT_STYLE = f"""
+    QDateEdit {{
+        border: none;
+        border-bottom: 2px solid {SECONDARY_COLOR};
+        padding: 4px 4px;
+        font-size: 12pt;
+        color: {TEXT_COLOR};
+        background-color: {BACKGROUND};
+    }}
+    QDateEdit:focus {{
+        border-bottom: 2px solid {PRIMARY_COLOR};
+        outline: none;
     }}
 """

@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedWidget, QVBoxLayout
 from ui.components.menu_sidebar import MenuSidebar
 from resources.styles.colors import BACKGROUND
+from ui.pages.vacations_page import VacationsPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,3 +31,10 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         area_layout.addWidget(self.stack)
         main_layout.addWidget(central_area)
+        
+        # Pages
+        self.vacations_page = VacationsPage()
+        
+        self.stack.addWidget(self.vacations_page)
+        
+        self.menu.buttons["Vacaciones"].clicked.connect(lambda: self.stack.setCurrentWidget(self.vacations_page))
