@@ -7,6 +7,7 @@ from resources.styles.colors import TEXT_COLOR, BACKGROUND
 from resources.styles.components import (
     INPUT_STYLE, BUTTON_STYLE, TITLE_STYLE, LABEL_STYLE, DATE_EDIT_STYLE
 )
+from logic.employee_logic import EmployeeLogic
 
 class VacationsPage(QWidget):
     def __init__(self):
@@ -50,14 +51,17 @@ class VacationsPage(QWidget):
         self.employee_name_input.setToolTip("Ingrese el nombre completo del trabajador")
         form.addRow(employee_name_label, self.employee_name_input)
 
-        # Employee ID
-        employee_id_label = QLabel("Cédula:")
-        employee_id_label.setStyleSheet(LABEL_STYLE)
-        self.employee_id_input = QLineEdit()
-        self.employee_id_input.setPlaceholderText("Ej: 123456789")
-        self.employee_id_input.setStyleSheet(INPUT_STYLE)
-        self.employee_id_input.setToolTip("Ingrese la cédula del trabajador")
-        form.addRow(employee_id_label, self.employee_id_input)
+        # National ID
+        national_id_label = QLabel("Cédula:")
+        national_id_label.setStyleSheet(LABEL_STYLE)
+        self.national_id_input = QLineEdit()
+        self.national_id_input.setPlaceholderText("Ej: 123456789")
+        self.national_id_input.setStyleSheet(INPUT_STYLE)
+        self.national_id_input.setToolTip("Ingrese la cédula del trabajador")
+        form.addRow(national_id_label, self.national_id_input)
+
+        # Connect to search as user types
+        self.national_id_input.textChanged.connect(self.on_national_id_changed)
 
         # Request date
         request_date_label = QLabel("Fecha de solicitud:")
@@ -101,16 +105,16 @@ class VacationsPage(QWidget):
         self.status_input.setEnabled(False)  # Also disables focus/click
         form.addRow(status_label, self.status_input)
 
-        # Approved by
-        approved_by_label = QLabel("Aprobado por:")
-        approved_by_label.setStyleSheet(LABEL_STYLE)
-        self.approved_by_input = QLineEdit()
-        self.approved_by_input.setPlaceholderText("Nombre de quien aprueba")
-        self.approved_by_input.setStyleSheet(INPUT_STYLE)
-        self.approved_by_input.setToolTip("Nombre de la persona que aprueba")
-        self.approved_by_input.setReadOnly(True)  # Block user input
-        self.approved_by_input.setEnabled(False)  # Also disables focus/click
-        form.addRow(approved_by_label, self.approved_by_input)
+        # Supervisor approval
+        supervisor_label = QLabel("Aprobado por:")
+        supervisor_label.setStyleSheet(LABEL_STYLE)
+        self.supervisor_input = QLineEdit()
+        self.supervisor_input.setPlaceholderText("Nombre de quien aprueba")
+        self.supervisor_input.setStyleSheet(INPUT_STYLE)
+        self.supervisor_input.setToolTip("Nombre de la persona que aprueba")
+        self.supervisor_input.setReadOnly(True)  # Block user input
+        self.supervisor_input.setEnabled(False)  # Also disables focus/click
+        form.addRow(supervisor_label, self.supervisor_input)
 
         # Week number label
         self.week_label = QLabel("Semana #: -")
@@ -142,3 +146,21 @@ class VacationsPage(QWidget):
         date = self.vacation_start_input.date()
         week_num = date.weekNumber()[0]  # Returns (week, year)
         self.week_label.setText(f"Semana #: {week_num}")
+
+    def on_national_id_changed(self, text: str) -> None:
+        if len(text) < 4:
+            self.employee_name_input.clear()
+            self.supervisor_input.clear()
+            self.current_supervisor_id = None
+            return
+        employee_info = EmployeeLogic.get_employee_full_info_by_national_id(text)
+        if employee_info:
+            full_name = f"{employee_info['first_name']} {employee_info['last_name_1']} {employee_info['last_name_2']}"
+            self.employee_name_input.setText(full_name)
+            supervisor_name = employee_info['supervisor'] if employee_info['supervisor'] else ""
+            self.supervisor_input.setText(supervisor_name)
+            self.current_supervisor_id = employee_info.get('supervisor_id', None)
+        else:
+            self.employee_name_input.clear()
+            self.supervisor_input.clear()
+            self.current_supervisor_id = None
