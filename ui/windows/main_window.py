@@ -4,6 +4,7 @@ from resources.styles.colors import BACKGROUND
 from ui.pages.vacations_page import VacationsPage
 from ui.pages.permits_page import PermitsPage
 from ui.pages.salary_certificate_page import SalaryCertificatePage
+from ui.pages.fcl_page import FCLPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -38,11 +39,14 @@ class MainWindow(QMainWindow):
         self.vacations_page = VacationsPage()
         self.permits_page = PermitsPage()
         self.salary_certificate = SalaryCertificatePage()
+        self.fcl_page = FCLPage()
 
         self.stack.addWidget(self.vacations_page)
         self.stack.addWidget(self.permits_page)
         self.stack.addWidget(self.salary_certificate)
+        self.stack.addWidget(self.fcl_page)
         
         self.menu.buttons["Vacaciones"].clicked.connect(lambda: self.stack.setCurrentWidget(self.vacations_page))
         self.menu.buttons["Permisos"].clicked.connect(lambda: self.stack.setCurrentWidget(self.permits_page))
         self.menu.buttons["Constancia"].clicked.connect(lambda: self.stack.setCurrentWidget(self.salary_certificate))
+        self.menu.buttons["FCL"].clicked.connect(lambda: self.stack.setCurrentWidget(self.fcl_page))
