@@ -1,6 +1,11 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedWidget, QVBoxLayout
 from ui.components.menu_sidebar import MenuSidebar
 from resources.styles.colors import BACKGROUND
+from ui.pages.vacations_page import VacationsPage
+from ui.pages.permits_page import PermitsPage
+from ui.pages.salary_certificate_page import SalaryCertificatePage
+from ui.pages.fcl_page import FCLPage
+from ui.pages.pending_request_page import PendingRequestPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,3 +35,22 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         area_layout.addWidget(self.stack)
         main_layout.addWidget(central_area)
+        
+        # Pages
+        self.vacations_page = VacationsPage()
+        self.permits_page = PermitsPage()
+        self.salary_certificate = SalaryCertificatePage()
+        self.fcl_page = FCLPage()
+        self.pending_requests_page = PendingRequestPage()
+
+        self.stack.addWidget(self.vacations_page)
+        self.stack.addWidget(self.permits_page)
+        self.stack.addWidget(self.salary_certificate)
+        self.stack.addWidget(self.fcl_page)
+        self.stack.addWidget(self.pending_requests_page)
+        
+        self.menu.buttons["Vacaciones"].clicked.connect(lambda: self.stack.setCurrentWidget(self.vacations_page))
+        self.menu.buttons["Permisos"].clicked.connect(lambda: self.stack.setCurrentWidget(self.permits_page))
+        self.menu.buttons["Constancia"].clicked.connect(lambda: self.stack.setCurrentWidget(self.salary_certificate))
+        self.menu.buttons["FCL"].clicked.connect(lambda: self.stack.setCurrentWidget(self.fcl_page))
+        self.menu.buttons["Pendiente Aprobar"].clicked.connect(lambda: self.stack.setCurrentWidget(self.pending_requests_page))
