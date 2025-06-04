@@ -24,9 +24,9 @@ def authenticate(email: str, password: str) -> AuthResult:
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT contrasena_hasheada 
-            FROM usuario 
-            WHERE correo_login = ?
+            SELECT hashed_password 
+            FROM user_account 
+            WHERE login_email = ?
         """, (email,))
         
         result = cursor.fetchone()
