@@ -28,7 +28,7 @@ class MenuSidebar(QWidget):
             ("Permisos", "Solicitar Permiso"),
             ("Constancia", "Constancia Salarial"),
             ("FCL", "FCL"),
-            ("Aprobar", "aprobar Solicitudes")
+            ("Pendiente Aprobar", "Pendiente Aprobar")
         ]
 
         for key, label in names:
