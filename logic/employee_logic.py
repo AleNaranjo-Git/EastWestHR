@@ -3,6 +3,7 @@ from models.deparment_model import Department
 from models.position_model import Position
 from models.payroll_type_model import PayrollType
 from typing import Optional, Dict, Any
+import logging
 
 class EmployeeLogic:
     @staticmethod
@@ -12,6 +13,7 @@ class EmployeeLogic:
         """
         employee = Employee.get_employee_by_national_id(national_id)
         if not employee:
+            logging.warning(f"No employee found with national_id: {national_id[:8]}...")
             return None
 
         department = Department.get_deparment_by_id(str(employee.department_id)) if employee.department_id else None
@@ -19,6 +21,7 @@ class EmployeeLogic:
         payroll_type = PayrollType.get_payroll_type_by_id(str(employee.payroll_type_id)) if employee.payroll_type_id else None
         supervisor = Employee.get_employee_by_id(str(employee.supervisor_id)) if employee.supervisor_id else None
 
+        logging.debug(f"Fetched full info for employee with national_id: {national_id}")
         return {
             "employee_id": str(employee.employee_id),
             "first_name": employee.first_name,

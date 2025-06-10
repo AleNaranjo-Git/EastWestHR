@@ -1,3 +1,4 @@
+import logging
 from db.connection import DatabaseConnection
 import uuid, datetime
 
@@ -35,6 +36,7 @@ class Employee:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
+            logging.error("No database connection available.")
             return None
         try:
             cursor = conn.cursor()
@@ -42,6 +44,7 @@ class Employee:
             row = cursor.fetchone()
             cursor.close()
             if row:
+                logging.debug(f"Employee found with national_id: {national_id}")
                 return cls(
                     employee_id=row[0],
                     first_name=row[1],
@@ -56,9 +59,10 @@ class Employee:
                     position_id=row[10],
                     supervisor_id=row[11]
                 )
+            logging.warning(f"No employee found with national_id: {national_id[:8]}...")
             return None
         except Exception as e:
-            print(f"Error searching for employee: {e}")
+            logging.error(f"Error searching for employee: {e}")
             return None
         finally:
             conn.close()
@@ -68,6 +72,7 @@ class Employee:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
+            logging.error("No database connection available.")
             return None
         try:
             cursor = conn.cursor()
@@ -75,6 +80,7 @@ class Employee:
             row = cursor.fetchone()
             cursor.close()
             if row:
+                logging.debug(f"Employee found with employee_id: {employee_id[:8]}...")
                 return cls(
                     employee_id=row[0],
                     first_name=row[1],
@@ -89,9 +95,10 @@ class Employee:
                     position_id=row[10],
                     supervisor_id=row[11]
                 )
+            logging.warning(f"No employee found with employee_id: {employee_id[:8]}...")
             return None
         except Exception as e:
-            print(f"Error searching for employee by id: {e}")
+            logging.error(f"Error searching for employee by id: {e}")
             return None
         finally:
             conn.close()

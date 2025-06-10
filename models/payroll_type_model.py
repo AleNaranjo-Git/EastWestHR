@@ -1,5 +1,6 @@
 from db.connection import DatabaseConnection
 import uuid
+import logging
 
 class PayrollType:
     def __init__(self, payroll_type_id: uuid.UUID, payroll_type_name: str):
@@ -11,6 +12,7 @@ class PayrollType:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
+            logging.error("No database connection available.")
             return None
         try:
             cursor = conn.cursor()
@@ -18,13 +20,15 @@ class PayrollType:
             row = cursor.fetchone()
             cursor.close()
             if row:
+                logging.debug(f"PayrollType found with payroll_type_id: {payroll_type_id[:8]}...")
                 return cls(
                     payroll_type_id=row[0],
                     payroll_type_name=row[1]
                 )
+            logging.warning(f"No payroll type found with payroll_type_id: {payroll_type_id[:8]}...")
             return None
         except Exception as e:
-            print(f"Error searching for payroll type by id: {e}")
+            logging.error(f"Error searching for payroll type by id: {e}")
             return None
         finally:
             conn.close()
