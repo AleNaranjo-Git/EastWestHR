@@ -62,6 +62,7 @@ venv.bak/
 *.sqlite3
 
 # Logs
+logs/
 *.log
 
 # Miscellaneous
