@@ -1,7 +1,4 @@
 from models.employee_model import Employee
-from models.deparment_model import Department
-from models.position_model import Position
-from models.payroll_type_model import PayrollType
 from typing import Optional, Dict, Any
 import logging
 
@@ -13,13 +10,10 @@ class EmployeeLogic:
         """
         employee = Employee.get_employee_by_national_id(national_id)
         if not employee:
-            logging.warning(f"No employee found with national_id: {national_id[:8]}...")
+            logging.warning(f"No employee found with national_id: {national_id}")
             return None
 
-        department = Department.get_deparment_by_id(str(employee.department_id)) if employee.department_id else None
-        position = Position.get_position_by_id(str(employee.position_id)) if employee.position_id else None
-        payroll_type = PayrollType.get_payroll_type_by_id(str(employee.payroll_type_id)) if employee.payroll_type_id else None
-        supervisor = Employee.get_employee_by_id(str(employee.supervisor_id)) if employee.supervisor_id else None
+        supervisor = Employee.get_employee_by_national_id(employee.supervisor) if employee.supervisor else None
 
         logging.debug(f"Fetched full info for employee with national_id: {national_id}")
         return {
@@ -30,13 +24,12 @@ class EmployeeLogic:
             "national_id": employee.national_id,
             "email": employee.email,
             "hire_date": employee.hire_date,
-            "birth_date": employee.birth_date,
-            "payroll_type": payroll_type.payroll_type_name if payroll_type else None,
-            "department": department.department_name if department else None,
-            "position": position.position_name if position else None,
+            "department": employee.department,
+            "position": employee.position,
             "supervisor": (
-                f"{supervisor.first_name} {supervisor.last_name_1} {supervisor.last_name_2}"
+                f"{supervisor.first_name.strip()} {supervisor.last_name_1.strip()} {supervisor.last_name_2.strip()}"
                 if supervisor else None
             ),
-            "supervisor_id": str(employee.supervisor_id) if employee.supervisor_id else None
+            "supervisor_id": str(supervisor.employee_id) if supervisor else None,
+            "birth_date": employee.birth_date
         }

@@ -1,4 +1,3 @@
-# filepath: c:\Users\nerka\Dev\east_west_prueba\utils\date_utils.py
 from datetime import datetime, date
 from typing import Any
 

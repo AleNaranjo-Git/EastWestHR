@@ -88,7 +88,6 @@ DATE_EDIT_STYLE = f"""
         outline: none;
     }}
 """
-
 COMBOBOX_STYLE = f"""
     QComboBox {{
         border: none;
