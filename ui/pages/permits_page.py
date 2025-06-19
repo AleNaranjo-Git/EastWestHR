@@ -2,13 +2,15 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFormLayout,
     QComboBox, QDateEdit, QHBoxLayout, QFrame, QSizePolicy, QSpacerItem
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, QDate, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
-from PySide6.QtCore import QRegularExpression
 from resources.styles.colors import BACKGROUND, TEXT_COLOR
 from resources.styles.components import (
     INPUT_STYLE, BUTTON_STYLE, TITLE_STYLE, LABEL_STYLE, DATE_EDIT_STYLE, COMBOBOX_STYLE, SEPARATOR_LINE_STYLE
 )
+from logic.employee_logic import EmployeeLogic
+from models.permit_type_model import PermitType
+from typing import List 
 
 
 class PermitsPage(QWidget):
@@ -43,23 +45,31 @@ class PermitsPage(QWidget):
         form.setVerticalSpacing(15)
 
         # --- Form fields ---
-        # Employee name
+         # Employee name
         employee_name_label = QLabel("Nombre del trabajador:")
         employee_name_label.setStyleSheet(LABEL_STYLE)
         self.employee_name_input = QLineEdit()
         self.employee_name_input.setPlaceholderText("Nombre del trabajador")
         self.employee_name_input.setStyleSheet(INPUT_STYLE)
         self.employee_name_input.setToolTip("Ingrese el nombre completo del trabajador")
+        # Only letters and spaces
+        name_validator = QRegularExpressionValidator(QRegularExpression(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$"))
+        self.employee_name_input.setValidator(name_validator)
         form.addRow(employee_name_label, self.employee_name_input)
 
-        # Employee ID
-        employee_id_label = QLabel("Cédula:")
-        employee_id_label.setStyleSheet(LABEL_STYLE)
-        self.employee_id_input = QLineEdit()
-        self.employee_id_input.setPlaceholderText("Ej: 123456789")
-        self.employee_id_input.setStyleSheet(INPUT_STYLE)
-        self.employee_id_input.setToolTip("Ingrese la cédula del trabajador")
-        form.addRow(employee_id_label, self.employee_id_input)
+        # National ID
+        national_id_label = QLabel("Cédula:")
+        national_id_label.setStyleSheet(LABEL_STYLE)
+        self.national_id_input = QLineEdit()
+        self.national_id_input.setPlaceholderText("Ej: 123456789")
+        self.national_id_input.setStyleSheet(INPUT_STYLE)
+        self.national_id_input.setToolTip("Ingrese la cédula del trabajador")
+        # Only numbers, max 9 digits
+        self.national_id_input.setMaxLength(9)
+        id_validator = QRegularExpressionValidator(QRegularExpression(r"^\d{0,9}$"))
+        self.national_id_input.setValidator(id_validator)
+        form.addRow(national_id_label, self.national_id_input)
+        self.national_id_input.textChanged.connect(self.on_national_id_changed)
 
         # Request date
         request_date_label = QLabel("Fecha de solicitud:")
@@ -69,6 +79,8 @@ class PermitsPage(QWidget):
         self.request_date_input.setDate(QDate.currentDate())
         self.request_date_input.setStyleSheet(DATE_EDIT_STYLE)
         self.request_date_input.setToolTip("Seleccione la fecha de solicitud")
+        self.request_date_input.setReadOnly(True)
+        self.request_date_input.setEnabled(False)
         form.addRow(request_date_label, self.request_date_input)
 
         # Absence date
@@ -86,9 +98,9 @@ class PermitsPage(QWidget):
         permit_type_label = QLabel("Tipo de permiso:")
         permit_type_label.setStyleSheet(LABEL_STYLE)
         self.permit_type_combo = QComboBox()
-        self.permit_type_combo.addItems(list([ # type: ignore
-            "Personal", "Médico", "Familiar", "Vacaciones", "Otro"
-        ])) 
+        permit_types = PermitType.get_all_active_permits()
+        permit_type_names: List[str] = [str(pt.permit_type_name) for pt in permit_types]
+        self.permit_type_combo.addItems(permit_type_names) # type: ignore
         self.permit_type_combo.setStyleSheet(COMBOBOX_STYLE)
         self.permit_type_combo.setToolTip("Seleccione el tipo de permiso")
         form.addRow(permit_type_label, self.permit_type_combo)
@@ -145,23 +157,23 @@ class PermitsPage(QWidget):
         status_label = QLabel("Estado:")
         status_label.setStyleSheet(LABEL_STYLE)
         self.status_input = QLineEdit()
-        self.status_input.setText("Pendiente")  # Default system value
+        self.status_input.setText("Pendiente")
         self.status_input.setStyleSheet(INPUT_STYLE)
         self.status_input.setToolTip("Estado de la solicitud")
-        self.status_input.setReadOnly(True)  # Block user input
-        self.status_input.setEnabled(False)  # Also disables focus/click
+        self.status_input.setReadOnly(True)
+        self.status_input.setEnabled(False)
         form.addRow(status_label, self.status_input)
 
-        # Approved by
-        approved_by_label = QLabel("Aprobado por:")
-        approved_by_label.setStyleSheet(LABEL_STYLE)
-        self.approved_by_input = QLineEdit()
-        self.approved_by_input.setPlaceholderText("Nombre de quien aprueba")
-        self.approved_by_input.setStyleSheet(INPUT_STYLE)
-        self.approved_by_input.setToolTip("Nombre de la persona que aprueba el permiso")
-        self.approved_by_input.setReadOnly(True)  # Block user input
-        self.approved_by_input.setEnabled(False)  # Also disables focus/click
-        form.addRow(approved_by_label, self.approved_by_input)
+        # Supervisor approval
+        supervisor_label = QLabel("Aprobado por:")
+        supervisor_label.setStyleSheet(LABEL_STYLE)
+        self.supervisor_input = QLineEdit()
+        self.supervisor_input.setPlaceholderText("Nombre de quien aprueba")
+        self.supervisor_input.setStyleSheet(INPUT_STYLE)
+        self.supervisor_input.setToolTip("Nombre de la persona que aprueba el permiso")
+        self.supervisor_input.setReadOnly(True)
+        self.supervisor_input.setEnabled(False)
+        form.addRow(supervisor_label, self.supervisor_input)
 
         # Week number label
         self.week_label = QLabel("Semana #: -")
@@ -193,6 +205,18 @@ class PermitsPage(QWidget):
         date = self.absence_date_input.date()
         week_num = date.weekNumber()[0]  # Returns (week, year)
         self.week_label.setText(f"Semana #: {week_num}")
+    
+    def on_national_id_changed(self, text: str) -> None:
+        if len(text) != 9:
+            return
+        employee_info = EmployeeLogic.get_employee_full_info_by_national_id(text)
+        if employee_info:
+            full_name = f"{employee_info['first_name'].strip()} {employee_info['last_name_1'].strip()} {employee_info['last_name_2'].strip()}"
+            self.employee_name_input.setText(full_name)
+            supervisor_name = employee_info['supervisor'] if employee_info['supervisor'] else ""
+            self.supervisor_input.setText(supervisor_name)
+            self.current_supervisor_id = employee_info.get('supervisor_id', None)
+            self.employee_info = employee_info
 
     def auto_insert_colon_entry(self, text: str) -> None:
         """

@@ -6,16 +6,6 @@ from db.connection import DatabaseConnection
 AuthResult = Literal["success", "connection_error", "invalid_user", "invalid_password"]
 
 def authenticate(email: str, password: str) -> AuthResult:
-    """
-    Authenticates user credentials against database.
-    
-    Args:
-        email: User's login email
-        password: User's password (plain text)
-        
-    Returns:
-        AuthResult: Authentication result status
-    """
     db = DatabaseConnection()
     conn = db.connect()
     
@@ -26,9 +16,9 @@ def authenticate(email: str, password: str) -> AuthResult:
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hashed_password 
-            FROM user_account 
-            WHERE login_email = ?
+            SELECT contrasenahash
+            FROM usuario
+            WHERE correologin = ?
         """, (email,))
         
         result = cursor.fetchone()

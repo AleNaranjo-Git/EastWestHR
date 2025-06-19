@@ -1,6 +1,5 @@
 import logging
 from typing import Optional, List
-import uuid
 from utils.date_utils import parse_date
 from datetime import date
 from db.connection import DatabaseConnection
@@ -8,27 +7,37 @@ from db.connection import DatabaseConnection
 class VacationRequest:
     def __init__(
         self,
+        vacation_request_id: int,
         request_date: date,
         start_date: date,
         end_date: date,
         total_days: int,
         status: str,
         week_number: int,
-        employee_id: uuid.UUID,
-        vacation_id: Optional[uuid.UUID] = None,
-        approved_by_id: Optional[uuid.UUID] = None
+        employee_national_id: str,
+        approver_national_id: Optional[str] = None
     ):
-        self.vacation_id = vacation_id
+        self.vacation_request_id = vacation_request_id
         self.request_date = request_date
         self.start_date = start_date
         self.end_date = end_date
         self.total_days = total_days
         self.status = status
         self.week_number = week_number
-        self.employee_id = employee_id
-        self.approved_by_id = approved_by_id
+        self.employee_national_id = employee_national_id
+        self.approver_national_id = approver_national_id
 
-    def save_vacation(self) -> bool:
+    @staticmethod
+    def save_vacation(
+        request_date: date,
+        start_date: date,
+        end_date: date,
+        total_days: int,
+        status: str,
+        week_number: int,
+        employee_national_id: str,
+        approver_national_id: Optional[str] = None
+    ) -> bool:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
@@ -37,22 +46,22 @@ class VacationRequest:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO vacation_request (
-                    request_date, start_date, end_date, total_days,
-                    status, week_number, employee_id, approved_by_id
+                INSERT INTO SolicitudVacaciones (
+                    fechaSolicitud, fechaInicio, fechaFin, totalDias,
+                    estado, numeroSemana, cedulaEmpleado, cedulaAprobador
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                self.request_date,
-                self.start_date,
-                self.end_date,
-                self.total_days,
-                self.status,
-                self.week_number,
-                str(self.employee_id),
-                str(self.approved_by_id) if self.approved_by_id else None
+                request_date,
+                start_date,
+                end_date,
+                total_days,
+                status,
+                week_number,
+                employee_national_id,
+                approver_national_id
             ))
             conn.commit()
-            logging.info(f"Vacation saved successfully for employee {self.employee_id}.")
+            logging.info(f"Vacation saved successfully for employee {employee_national_id}.")
             return True
         except Exception as e:
             logging.error(f"Error saving vacation: {e}")
@@ -61,7 +70,7 @@ class VacationRequest:
             conn.close()
 
     @staticmethod
-    def get_vacation_by_id(vacation_id: uuid.UUID) -> Optional['VacationRequest']:
+    def get_vacation_by_id(vacation_request_id: int) -> Optional['VacationRequest']:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
@@ -69,22 +78,22 @@ class VacationRequest:
             return None
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM vacation_request WHERE vacation_id = ?", (str(vacation_id),))
+            cursor.execute("SELECT * FROM SolicitudVacaciones WHERE idSolicitudVacaciones = ?", (vacation_request_id,))
             row = cursor.fetchone()
             if row:
-                logging.debug(f"Vacation found with vacation_id: {vacation_id}")
+                logging.debug(f"Vacation found with id: {vacation_request_id}")
                 return VacationRequest(
-                    vacation_id=uuid.UUID(row[0]),
+                    vacation_request_id=row[0],
                     request_date=row[1],
                     start_date=row[2],
                     end_date=row[3],
                     total_days=row[4],
                     status=row[5],
                     week_number=row[6],
-                    employee_id=uuid.UUID(row[7]),
-                    approved_by_id=uuid.UUID(row[8]) if row[8] else None
+                    employee_national_id=row[7],
+                    approver_national_id=row[8]
                 )
-            logging.warning(f"No vacation found with vacation_id: {vacation_id}")
+            logging.warning(f"No vacation found with id: {vacation_request_id}")
             return None
         except Exception as e:
             logging.error(f"Error getting vacation: {e}")
@@ -93,7 +102,7 @@ class VacationRequest:
             conn.close()
 
     @staticmethod
-    def get_vacations_by_employee_id(employee_id: str) -> List['VacationRequest']:
+    def get_vacations_by_employee_national_id(employee_national_id: str) -> List['VacationRequest']:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
@@ -101,20 +110,20 @@ class VacationRequest:
             return []
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM vacation_request WHERE employee_id = ?", (str(employee_id),))
+            cursor.execute("SELECT * FROM SolicitudVacaciones WHERE cedulaEmpleado = ?", (employee_national_id,))
             rows = cursor.fetchall()
-            logging.debug(f"Found {len(rows)} vacations for employee {employee_id}.")
+            logging.debug(f"Found {len(rows)} vacations for employee {employee_national_id}.")
             return [
                 VacationRequest(
-                    vacation_id=uuid.UUID(row[0]),
+                    vacation_request_id=row[0],
                     request_date=parse_date(row[1]),
                     start_date=parse_date(row[2]),
                     end_date=parse_date(row[3]),
                     total_days=row[4],
                     status=row[5],
                     week_number=row[6],
-                    employee_id=uuid.UUID(row[7]),
-                    approved_by_id=uuid.UUID(row[8]) if row[8] else None
+                    employee_national_id=row[7],
+                    approver_national_id=row[8]
                 )
                 for row in rows
             ]
@@ -124,7 +133,18 @@ class VacationRequest:
         finally:
             conn.close()
 
-    def update_vacation(self) -> bool:
+    @staticmethod
+    def update_vacation(
+        vacation_request_id: int,
+        request_date: date,
+        start_date: date,
+        end_date: date,
+        total_days: int,
+        status: str,
+        week_number: int,
+        employee_national_id: str,
+        approver_national_id: Optional[str] = None
+    ) -> bool:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
@@ -133,23 +153,23 @@ class VacationRequest:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE vacation_request
-                SET request_date = ?, start_date = ?, end_date = ?, total_days = ?,
-                    status = ?, week_number = ?, employee_id = ?, approved_by_id = ?
-                WHERE vacation_id = ?
+                UPDATE SolicitudVacaciones
+                SET fechaSolicitud = ?, fechaInicio = ?, fechaFin = ?, totalDias = ?,
+                    estado = ?, numeroSemana = ?, cedulaEmpleado = ?, cedulaAprobador = ?
+                WHERE idSolicitudVacaciones = ?
             """, (
-                self.request_date,
-                self.start_date,
-                self.end_date,
-                self.total_days,
-                self.status,
-                self.week_number,
-                str(self.employee_id),
-                str(self.approved_by_id) if self.approved_by_id else None,
-                str(self.vacation_id)
+                request_date,
+                start_date,
+                end_date,
+                total_days,
+                status,
+                week_number,
+                employee_national_id,
+                approver_national_id,
+                vacation_request_id
             ))
             conn.commit()
-            logging.info(f"Vacation updated successfully for vacation_id {self.vacation_id}.")
+            logging.info(f"Vacation updated successfully for id {vacation_request_id}.")
             return True
         except Exception as e:
             logging.error(f"Error updating vacation: {e}")
@@ -157,7 +177,8 @@ class VacationRequest:
         finally:
             conn.close()
 
-    def delete_vacation(self) -> bool:
+    @staticmethod
+    def delete_vacation(vacation_request_id: int) -> bool:
         db = DatabaseConnection()
         conn = db.connect()
         if conn is None:
@@ -165,9 +186,9 @@ class VacationRequest:
             return False
         try:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM vacation_request WHERE vacation_id = ?", (str(self.vacation_id),))
+            cursor.execute("DELETE FROM SolicitudVacaciones WHERE idSolicitudVacaciones = ?", (vacation_request_id,))
             conn.commit()
-            logging.info(f"Vacation deleted successfully for vacation_id {self.vacation_id}.")
+            logging.info(f"Vacation deleted successfully for id {vacation_request_id}.")
             return True
         except Exception as e:
             logging.error(f"Error deleting vacation: {e}")

@@ -163,12 +163,12 @@ class VacationsPage(QWidget):
             return
         employee_info = EmployeeLogic.get_employee_full_info_by_national_id(text)
         if employee_info:
-            full_name = f"{employee_info['first_name']} {employee_info['last_name_1']} {employee_info['last_name_2']}"
+            full_name = f"{employee_info['first_name'].strip()} {employee_info['last_name_1'].strip()} {employee_info['last_name_2'].strip()}"
             self.employee_name_input.setText(full_name)
             supervisor_name = employee_info['supervisor'] if employee_info['supervisor'] else ""
             self.supervisor_input.setText(supervisor_name)
             self.current_supervisor_id = employee_info.get('supervisor_id', None)
-            self.employee_info = employee_info 
+            self.employee_info = employee_info
 
     def validate_and_submit(self):
         # Show confirmation dialog before proceeding
