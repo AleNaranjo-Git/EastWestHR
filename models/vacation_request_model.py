@@ -195,3 +195,60 @@ class VacationRequest:
             return False
         finally:
             conn.close()
+            
+    @staticmethod
+    def get_vacations_by_supervisor_id(supervisor_national_id: str) -> List["VacationRequest"]:
+        db = DatabaseConnection()
+        conn = db.connect()
+        vacations: List[VacationRequest] = []
+        if conn is None:
+            logging.error("Could not connect to the database.")
+            return vacations
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT *
+                FROM SolicitudVacaciones
+                WHERE cedulaAprobador = ?
+            """, (supervisor_national_id,))
+            rows = cursor.fetchall()
+            cursor.close()
+            for row in rows:
+                vacations.append(VacationRequest(
+                    vacation_request_id=row[0],
+                    request_date=row[1],
+                    start_date=row[2],
+                    end_date=row[3],
+                    total_days=row[4],
+                    status=row[5],
+                    week_number=row[6],
+                    employee_national_id=row[7],
+                    approver_national_id=row[8]
+                ))
+            return vacations
+        except Exception as e:
+            logging.error(f"Error retrieving vacations by supervisor_id: {e}")
+            return []
+        finally:
+            conn.close()
+            
+    @staticmethod
+    def update_status(vacation_request_id: int, new_status: str) -> bool:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            return False
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE SolicitudVacaciones SET estado = ? WHERE idSolicitudVacaciones = ?",
+                (new_status, vacation_request_id)
+            )
+            conn.commit()
+            cursor.close()
+            return True
+        except Exception as e:
+            print(f"Error updating vacation status: {e}")
+            return False
+        finally:
+            conn.close()

@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 from utils.logging_config import setup_logging
 
-load_dotenv()  # Esto carga las variables del .env
+load_dotenv()
 
 # Set log level based on environment
 env = os.getenv("APP_ENV", "development")

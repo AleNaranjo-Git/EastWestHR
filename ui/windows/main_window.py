@@ -6,6 +6,7 @@ from ui.pages.permits_page import PermitsPage
 from ui.pages.salary_certificate_page import SalaryCertificatePage
 from ui.pages.fcl_page import FCLPage
 from ui.pages.pending_request_page import PendingRequestPage
+from logic.auth import get_current_user_role
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,4 +54,10 @@ class MainWindow(QMainWindow):
         self.menu.buttons["Permisos"].clicked.connect(lambda: self.stack.setCurrentWidget(self.permits_page))
         self.menu.buttons["Constancia"].clicked.connect(lambda: self.stack.setCurrentWidget(self.salary_certificate))
         self.menu.buttons["FCL"].clicked.connect(lambda: self.stack.setCurrentWidget(self.fcl_page))
-        self.menu.buttons["Pendiente Aprobar"].clicked.connect(lambda: self.stack.setCurrentWidget(self.pending_requests_page))
+
+        # Only allow roles 1, 2, 3 to see "Pendiente Aprobar"
+        user_role = get_current_user_role()
+        if user_role in (1, 2, 3):
+            self.menu.buttons["Pendiente Aprobar"].clicked.connect(lambda: self.stack.setCurrentWidget(self.pending_requests_page))
+        else:
+            self.menu.buttons["Pendiente Aprobar"].setVisible(False)

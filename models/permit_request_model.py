@@ -146,3 +146,61 @@ class PermitRequest:
             return False
         finally:
             conn.close()
+            
+    @staticmethod
+    def get_permits_by_supervisor_id(supervisor_national_id: str) -> List["PermitRequest"]:
+        db = DatabaseConnection()
+        conn = db.connect()
+        permits: List[PermitRequest] = []
+        if conn is None:
+            logging.error("Could not connect to the database.")
+            return permits
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT *
+                FROM SolicitudPermiso
+                WHERE cedulaAprobador = ?
+            """, (supervisor_national_id,))
+            rows = cursor.fetchall()
+            cursor.close()
+            for row in rows:
+                permits.append(PermitRequest(
+                    permit_request_id=row[0],
+                    request_date=row[1],
+                    absence_date=row[2],
+                    check_in_time=row[3],
+                    check_out_time=row[4],
+                    status=row[5],
+                    week_number=row[6],
+                    employee_national_id=row[7],
+                    permit_type_id=row[8],
+                    approver_national_id=row[9]
+                ))
+            return permits
+        except Exception as e:
+            logging.error(f"Error retrieving permits by supervisor_id: {e}")
+            return []
+        finally:
+            conn.close()
+            
+    @staticmethod
+    def update_status(permit_request_id: int, new_status: str) -> bool:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            return False
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE SolicitudPermiso SET estado = ? WHERE idSolicitudPermiso = ?",
+                (new_status, permit_request_id)
+            )
+            conn.commit()
+            cursor.close()
+            return True
+        except Exception as e:
+            print(f"Error updating permit status: {e}")
+            return False
+        finally:
+            conn.close()
