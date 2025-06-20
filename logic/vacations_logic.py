@@ -68,6 +68,21 @@ class VacationsLogic:
         return False
     
     @staticmethod
+    def has_overlapping_permit_for_vacation(employee_national_id: str, start_date: date, end_date: date) -> bool:
+        """
+        Returns True if the employee has an approved or pending permit on any day in the vacation range.
+        """
+        from models.permit_request_model import PermitRequest
+        permits = PermitRequest.get_permits_by_employee_national_id(employee_national_id)
+        for permit in permits:
+            if permit.status.lower() in ("aprobado", "pendiente"):
+                if start_date <= permit.absence_date <= end_date:
+                    logging.debug(f"Overlapping permit found for national_id {employee_national_id} on {permit.absence_date} in range {start_date} to {end_date}")
+                    return True
+        logging.debug(f"No overlapping permit found for national_id {employee_national_id} in range {start_date} to {end_date}")
+        return False
+    
+    @staticmethod
     def can_request_vacation(employee_national_id: str, start_date: date, end_date: date) -> Tuple[bool, str]:
         months_worked = VacationsLogic.get_months_worked(employee_national_id)
         approved_days = VacationsLogic.get_approved_vacation_days(employee_national_id)
@@ -79,6 +94,10 @@ class VacationsLogic:
         if VacationsLogic.has_overlapping_vacation(employee_national_id, start_date, end_date):
             logging.warning(f"Vacation request denied for national_id {employee_national_id}: overlapping vacation in range {start_date} to {end_date}")
             return False, "Ya existe una vacación aprobada o pendiente en ese rango."
+        
+        if VacationsLogic.has_overlapping_permit_for_vacation(employee_national_id, start_date, end_date):
+            logging.warning(f"Vacation request denied for national_id {employee_national_id}: overlapping permit in range {start_date} to {end_date}")
+            return False, "Ya existe un permiso aprobado o pendiente en ese rango."
 
         if start_date > end_date:
             logging.warning(f"Vacation request denied for national_id {employee_national_id}: start date after end date.")

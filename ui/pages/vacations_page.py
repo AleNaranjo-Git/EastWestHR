@@ -9,6 +9,7 @@ from resources.styles.components import (
     INPUT_STYLE, BUTTON_STYLE, TITLE_STYLE, LABEL_STYLE, DATE_EDIT_STYLE
 )
 from logic.employee_logic import EmployeeLogic
+from logic.auth import Session
 from datetime import date
 
 class VacationsPage(QWidget):
@@ -18,6 +19,13 @@ class VacationsPage(QWidget):
         self.setStyleSheet(f"background-color: {BACKGROUND}; color: {TEXT_COLOR};")
         self.setup_ui()
         self.showMaximized()
+
+        # Pre-fill national ID if available in session
+        if Session.current_user and Session.current_user.get("cedulaEmpleado"):
+            national_id = Session.current_user["cedulaEmpleado"].strip()
+            self.national_id_input.setText(national_id)
+            self.national_id_input.setReadOnly(True)
+            self.national_id_input.setEnabled(False)
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)

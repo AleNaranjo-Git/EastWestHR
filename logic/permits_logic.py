@@ -5,10 +5,34 @@ from models.permit_request_model import PermitRequest
 from models.birthday_policy_model import BirthdayPolicy
 from models.employee_model import Employee
 from models.permit_type_model import PermitType
+from typing import Tuple, List, Dict, Any
 import logging
-from typing import Tuple
 
 class PermitsLogic:
+    @staticmethod
+    def get_permit_full_info_by_supervisor_id(supervisor_national_id: str) -> List[Dict[str, Any]]:
+        permits = PermitRequest.get_permits_by_supervisor_id(supervisor_national_id)
+        if not permits:
+            logging.warning(f"No permits found for supervisor with national_id: {supervisor_national_id}")
+            return []
+
+        permits_info: List[Dict[str, Any]] = []
+        for permit in permits:
+            permit_type = PermitType.get_permit_type_by_id(permit.permit_type_id) if getattr(permit, "permit_type_id", None) else None
+            permits_info.append({
+                "permit_request_id": getattr(permit, "permit_request_id", None),
+                "request_date": getattr(permit, "request_date", None),
+                "absence_date": getattr(permit, "absence_date", None),
+                "check_in_time": getattr(permit, "check_in_time", None),
+                "check_out_time": getattr(permit, "check_out_time", None),
+                "status": getattr(permit, "status", None),
+                "week_number": getattr(permit, "week_number", None),
+                "employee_national_id": getattr(permit, "employee_national_id", None),
+                "permit_type_name": permit_type.permit_type_name if permit_type else None,
+                "approver_national_id": getattr(permit, "approver_national_id", None)
+            })
+        return permits_info
+    
     @staticmethod
     def get_available_vacation_days(employee_national_id: str) -> int:
         """
@@ -45,6 +69,27 @@ class PermitsLogic:
                     return True, "Ya existe un permiso aprobado o pendiente para esa fecha."
         logging.debug(
             f"No overlapping permit found for national_id {employee_national_id} on {absence_date}"
+        )
+        return False, ""
+    
+    @staticmethod
+    def has_overlapping_vacation_for_permit(employee_national_id: str, absence_date: date) -> Tuple[bool, str]:
+        """
+        Returns True if the employee has an approved or pending vacation on the given absence_date.
+        Adds detailed logging for debugging.
+        """
+        from models.vacation_request_model import VacationRequest
+        vacations = VacationRequest.get_vacations_by_employee_national_id(employee_national_id)
+        for vac in vacations:
+            if vac.status.lower() in ("aprobado", "pendiente"):
+                if vac.start_date <= absence_date <= vac.end_date:
+                    logging.debug(
+                        f"Overlapping vacation found for national_id {employee_national_id} on {absence_date} "
+                        f"(vacation from {vac.start_date} to {vac.end_date}, status={vac.status})"
+                    )
+                    return True, "Ya existe una vacación aprobado o pendiente para esa fecha."
+        logging.debug(
+            f"No overlapping vacation found for national_id {employee_national_id} on {absence_date}"
         )
         return False, ""
 
@@ -201,9 +246,14 @@ class PermitsLogic:
             return False, business_msg
 
         # Check for overlapping permit
-        overlap, overlap_msg = PermitsLogic.has_overlapping_permit(employee_national_id, absence_date)
+        overlap, overlap_permit_msg = PermitsLogic.has_overlapping_permit(employee_national_id, absence_date)
         if overlap:
-            return False, overlap_msg
+            return False, overlap_permit_msg
+        
+        # Check for overlapping vacation
+        overlap_vacation, overlap_vacation_msg = PermitsLogic.has_overlapping_vacation_for_permit(employee_national_id, absence_date)
+        if overlap_vacation:
+            return False, overlap_vacation_msg
 
         return True, ""
 
@@ -241,11 +291,11 @@ class PermitsLogic:
             if not valid:
                 return False, msg
 
-        # # Special validation for "Beneficio cumpleaños"
-        # elif permit_type_name == "beneficio cumpleaños":
-        #     valid, msg = PermitsLogic.validate_birthday_benefit(employee_national_id, absence_date)
-        #     if not valid:
-        #         return False, msg
+        # Special validation for "Beneficio cumpleaños"
+        elif permit_type_name == "beneficio cumpleaños":
+            valid, msg = PermitsLogic.validate_birthday_benefit(employee_national_id, absence_date)
+            if not valid:
+                return False, msg
 
         # Save permit
         result = PermitRequest.save_permit(
