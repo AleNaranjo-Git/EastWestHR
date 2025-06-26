@@ -14,8 +14,7 @@ class EmployeeLogic:
             return None
 
         supervisor = Employee.get_employee_by_national_id(employee.supervisor) if employee.supervisor else None
-
-        logging.debug(f"Fetched full info for employee with national_id: {national_id}")
+        
         return {
             "employee_id": str(employee.employee_id),
             "first_name": employee.first_name,

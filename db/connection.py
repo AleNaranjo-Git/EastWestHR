@@ -24,7 +24,6 @@ class DatabaseConnection:
                     f"PWD={self.password};"
                     f"Encrypt=no;"
                 )
-                logging.debug("Database connection established successfully.")
             except Exception as e:
                 logging.error(f"Database connection error: {e}")
         return self.conn
@@ -33,4 +32,3 @@ class DatabaseConnection:
         if self.conn:
             self.conn.close()
             self.conn = None
-            logging.debug("Database connection closed.")

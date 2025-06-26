@@ -23,7 +23,7 @@ class PermitType:
             row = cursor.fetchone()
             cursor.close()
             if row:
-                logging.debug(f"PermitType found with permit_type_id: {permit_type_id}")
+                
                 return cls(
                     permit_type_id=row[0],
                     permit_type_name=row[1],

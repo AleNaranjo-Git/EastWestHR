@@ -184,3 +184,25 @@ REJECT_BUTTON_STYLE = f"""
         background-color: #4c505a;
     }}
 """
+
+MESSAGE_BOX_STYLE = f"""
+    QMessageBox {{
+        background-color: {BACKGROUND};
+        border-radius: 8px;
+    }}
+    QMessageBox QLabel {{
+        font-size: 14pt;
+        color: {TEXT_COLOR};
+    }}
+    QMessageBox QPushButton {{
+        background-color: {PRIMARY_COLOR};
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 12pt;
+    }}
+    QMessageBox QPushButton:hover {{
+        background-color: {PRIMARY_HOVER};
+    }}
+"""

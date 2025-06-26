@@ -81,7 +81,6 @@ class VacationRequest:
             cursor.execute("SELECT * FROM SolicitudVacaciones WHERE idSolicitudVacaciones = ?", (vacation_request_id,))
             row = cursor.fetchone()
             if row:
-                logging.debug(f"Vacation found with id: {vacation_request_id}")
                 return VacationRequest(
                     vacation_request_id=row[0],
                     request_date=row[1],

@@ -45,7 +45,6 @@ class Employee:
             row = cursor.fetchone()
             cursor.close()
             if row:
-                logging.debug(f"Employee found with national_id: {national_id}")
                 return Employee(
                     employee_id=row[0],
                     last_name_1=row[1],
@@ -83,7 +82,6 @@ class Employee:
             row = cursor.fetchone()
             cursor.close()
             if row:
-                logging.debug(f"Employee found with employee_id: {employee_id}")
                 return Employee(
                     employee_id=row[0],
                     last_name_1=row[1],

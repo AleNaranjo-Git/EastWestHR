@@ -12,10 +12,10 @@ else:
     setup_logging(default_level="DEBUG", file_level="INFO")
 
 from PySide6.QtWidgets import QApplication
-from ui.windows.login_window import LoginWindow
+from ui.windows.main_window import MainWindow
 import sys
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    login = LoginWindow()
+    main_window = MainWindow()
     app.exec()
