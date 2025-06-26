@@ -53,18 +53,6 @@ class PermitsPage(QWidget):
         form.setVerticalSpacing(15)
 
         # --- Form fields ---
-         # Employee name
-        employee_name_label = QLabel("Nombre del trabajador:")
-        employee_name_label.setStyleSheet(LABEL_STYLE)
-        self.employee_name_input = QLineEdit()
-        self.employee_name_input.setPlaceholderText("Nombre del trabajador")
-        self.employee_name_input.setStyleSheet(INPUT_STYLE)
-        self.employee_name_input.setToolTip("Ingrese el nombre completo del trabajador")
-        # Only letters and spaces
-        name_validator = QRegularExpressionValidator(QRegularExpression(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$"))
-        self.employee_name_input.setValidator(name_validator)
-        form.addRow(employee_name_label, self.employee_name_input)
-
         # National ID
         national_id_label = QLabel("Cédula:")
         national_id_label.setStyleSheet(LABEL_STYLE)
@@ -78,6 +66,18 @@ class PermitsPage(QWidget):
         self.national_id_input.setValidator(id_validator)
         form.addRow(national_id_label, self.national_id_input)
         self.national_id_input.textChanged.connect(self.on_national_id_changed)
+        
+         # Employee name
+        employee_name_label = QLabel("Nombre del trabajador:")
+        employee_name_label.setStyleSheet(LABEL_STYLE)
+        self.employee_name_input = QLineEdit()
+        self.employee_name_input.setPlaceholderText("Nombre del trabajador")
+        self.employee_name_input.setStyleSheet(INPUT_STYLE)
+        self.employee_name_input.setToolTip("Ingrese el nombre completo del trabajador")
+        # Only letters and spaces
+        name_validator = QRegularExpressionValidator(QRegularExpression(r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$"))
+        self.employee_name_input.setValidator(name_validator)
+        form.addRow(employee_name_label, self.employee_name_input)
 
         # Request date
         request_date_label = QLabel("Fecha de solicitud:")
