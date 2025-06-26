@@ -88,7 +88,6 @@ DATE_EDIT_STYLE = f"""
         outline: none;
     }}
 """
-
 COMBOBOX_STYLE = f"""
     QComboBox {{
         border: none;
@@ -122,5 +121,88 @@ SEPARATOR_LINE_STYLE = f"""
         min-height: 2px;
         max-height: 2px;
         border: none;
+    }}
+"""
+
+# Filter button style
+FILTER_BUTTON_STYLE = f"""
+    QPushButton {{
+        background-color: {PRIMARY_COLOR};
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-weight: bold;
+        font-size: 11pt;
+    }}
+    QPushButton:hover {{
+        background-color: {PRIMARY_HOVER};
+    }}
+"""
+
+CARD_STYLE = """
+    QFrame {
+        background-color: {BACKGROUND};
+        border: none;
+        border-radius: 8px;
+    }
+"""
+
+INFO_CARD_STYLE = """
+    QFrame {
+        background-color: {BACKGROUND};
+        border: none;
+        border-radius: 8px;
+    }
+"""
+
+FILTER_TITLE_STYLE = f"font-weight: bold; font-size: 14px; color: {PRIMARY_COLOR};"
+
+CLEAR_FILTERS_STYLE = f"""
+    QPushButton {{
+        background: transparent;
+        border: none;
+        color: {PRIMARY_COLOR};
+        text-decoration: underline;
+        font-size: 11pt;
+    }}
+    QPushButton:hover {{
+        color: {PRIMARY_HOVER};
+    }}
+"""
+
+REJECT_BUTTON_STYLE = f"""
+    QPushButton {{
+        background-color: {SECONDARY_COLOR};
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14pt;
+        height: 40px;
+    }}
+    QPushButton:hover {{
+        background-color: #4c505a;
+    }}
+"""
+
+MESSAGE_BOX_STYLE = f"""
+    QMessageBox {{
+        background-color: {BACKGROUND};
+        border-radius: 8px;
+    }}
+    QMessageBox QLabel {{
+        font-size: 14pt;
+        color: {TEXT_COLOR};
+    }}
+    QMessageBox QPushButton {{
+        background-color: {PRIMARY_COLOR};
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 12pt;
+    }}
+    QMessageBox QPushButton:hover {{
+        background-color: {PRIMARY_HOVER};
     }}
 """

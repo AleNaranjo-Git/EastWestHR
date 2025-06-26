@@ -1,6 +1,7 @@
 import pyodbc
 from dotenv import load_dotenv
 import os
+import logging
 
 class DatabaseConnection:
     def __init__(self):
@@ -23,9 +24,8 @@ class DatabaseConnection:
                     f"PWD={self.password};"
                     f"Encrypt=no;"
                 )
-                print("✅ Conexión exitosa")
             except Exception as e:
-                print("❌ Error de conexión:", e)
+                logging.error(f"Database connection error: {e}")
         return self.conn
 
     def close(self):

@@ -76,7 +76,6 @@ class LoginWindow(QWidget):
 
         # Login button
         self.login_button = QPushButton("Iniciar sesión")
-        self.login_button.setFixedHeight(40)
         self.login_button.setStyleSheet(BUTTON_STYLE)
         self.login_button.clicked.connect(self.login)
         form_layout.addWidget(self.login_button)
