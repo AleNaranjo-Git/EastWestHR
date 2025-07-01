@@ -192,6 +192,7 @@ class DocumentRequestPage(QWidget):
         self.generate_fcl_button = QPushButton("Generar FCL")
         self.generate_fcl_button.setStyleSheet(BUTTON_STYLE)
         self.generate_fcl_button.setFixedWidth(400)
+        self.generate_fcl_button.clicked.connect(self.handle_generate_fcl)
 
         self.generate_salary_certificate_button = QPushButton("Generar Constancia Salarial")
         self.generate_salary_certificate_button.setStyleSheet(BUTTON_STYLE)
@@ -209,11 +210,8 @@ class DocumentRequestPage(QWidget):
         self.populate_table(self.unified_requests)
 
     def populate_table(self, requests: List[Dict[str, str]]) -> None:
-        # Sort requests so "Documento no generado" appears first
-        sorted_requests = sorted(requests, key=lambda r: r["document_generated"] == "Documento generado")
-
         self.table.setRowCount(0)
-        for req in sorted_requests:
+        for req in requests:
             row = self.table.rowCount()
             self.table.insertRow(row)
             self.table.setItem(row, 0, QLabelItem(str(req["employee_name"])))
@@ -262,15 +260,17 @@ class DocumentRequestPage(QWidget):
     def update_info_from_selection(self):
         selected_row = self.table.currentRow()
         if selected_row < 0:
+            # Reset labels and disable both buttons when no row is selected
             self.name_label.setText("-")
             self.national_id_label.setText("-")
             self.type_label.setText("-")
             self.requested_on_label.setText("-")
             self.document_generated_label.setText("-")
-            self.generate_salary_certificate_button.setEnabled(False)
-            self.generate_fcl_button.setEnabled(False)
+            self.generate_salary_certificate_button.setDisabled(True)
+            self.generate_fcl_button.setDisabled(True)
             return
 
+        # Get the selected request data
         selected_request = self.unified_requests[selected_row]
         self.name_label.setText(str(selected_request["employee_name"]))
         self.national_id_label.setText(str(selected_request["employee_national_id"]))
@@ -278,15 +278,23 @@ class DocumentRequestPage(QWidget):
         self.requested_on_label.setText(str(selected_request["request_date"]))
         self.document_generated_label.setText(str(selected_request["document_generated"]))
 
+        # Disable both buttons if the document is already generated
+        if selected_request["document_generated"] == "Documento generado":
+            self.generate_salary_certificate_button.setDisabled(True)
+            self.generate_fcl_button.setDisabled(True)
+            return
+
+        # Enable or disable buttons based on the type
         if selected_request["type"] == "Constancia Salarial":
-            self.generate_salary_certificate_button.setEnabled(True)
-            self.generate_fcl_button.setEnabled(False)
+            self.generate_salary_certificate_button.setDisabled(False)
+            self.generate_fcl_button.setDisabled(True)
         elif selected_request["type"] == "FCL":
-            self.generate_salary_certificate_button.setEnabled(False)
-            self.generate_fcl_button.setEnabled(True)
+            self.generate_salary_certificate_button.setDisabled(True)
+            self.generate_fcl_button.setDisabled(False)
         else:
-            self.generate_salary_certificate_button.setEnabled(False)
-            self.generate_fcl_button.setEnabled(False)
+            # Disable both buttons if the type is invalid
+            self.generate_salary_certificate_button.setDisabled(True)
+            self.generate_fcl_button.setDisabled(True)
 
     def toggle_filter_panel(self):
         self.filter_frame.setVisible(not self.filter_frame.isVisible())
@@ -329,10 +337,8 @@ class DocumentRequestPage(QWidget):
 
         if success:
             QMessageBox.information(self, "Éxito", f"El documento se generó correctamente en:\n{save_path}")
-            SalaryCertificate.update_certificate_by_id(
-                selected_request["certificate_id"]
-            )
-            self.populate_table(self.unified_requests)
+            SalaryCertificate.update_certificate_by_id(selected_request["certificate_id"])
+            self.load_requests()
         else:
             QMessageBox.critical(self, "Error", "No se pudo generar el documento.")
 
@@ -370,10 +376,8 @@ class DocumentRequestPage(QWidget):
 
         if success:
             QMessageBox.information(self, "Éxito", f"El documento FCL se generó correctamente en:\n{save_path}")
-            FCL.update_fcl_by_id(
-                selected_request["certificate_id"]
-            )
-            self.populate_table(self.unified_requests)
+            FCL.update_fcl_by_id(selected_request["fcl_id"])
+            self.load_requests()
         else:
             QMessageBox.critical(self, "Error", "No se pudo generar el documento FCL.")
 
