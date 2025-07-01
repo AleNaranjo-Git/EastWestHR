@@ -4,6 +4,7 @@ from logic.permits_logic import PermitsLogic
 from models.vacation_request_model import VacationRequest
 from models.permit_request_model import PermitRequest
 from models.employee_model import Employee
+from models.permit_type_model import PermitType
 
 class UnifiedRequest:
     def __init__(
@@ -124,9 +125,15 @@ def get_all_unified_requests_ordered() -> List[UnifiedRequest]:
             f"{supervisor.first_name.strip()} {supervisor.last_name_1.strip()} {supervisor.last_name_2.strip()}"
             if supervisor else None
         )
+        
+        permit_type = PermitType.get_permit_type_by_id(permit.permit_type_id)
+        permit_type_name = (
+            permit_type.permit_type_name if permit_type else "Desconocido"
+        )
+        
         unified_requests.append(UnifiedRequest(
             type_="Permiso",
-            permit_type_name=str(permit.permit_type_id),
+            permit_type_name=permit_type_name,
             employee_name=employee_name,
             employee_national_id=permit.employee_national_id,
             request_date=permit.request_date,

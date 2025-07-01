@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
-    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout
+    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout, QFileDialog, QMessageBox
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIcon
@@ -11,8 +11,9 @@ from resources.styles.components import (
     FILTER_TITLE_STYLE, CLEAR_FILTERS_STYLE
 )
 from logic.unified_requests import get_all_unified_requests_ordered, UnifiedRequest
-from typing import List
+from typing import Dict, List
 from datetime import date
+from logic.document_generation import generate_excel_report
 
 class ReportGenerationPage(QWidget):
     def __init__(self):
@@ -156,7 +157,7 @@ class ReportGenerationPage(QWidget):
 
         self.generate_report_button = QPushButton("Generar reporte en Excel")
         self.generate_report_button.setStyleSheet(BUTTON_STYLE)
-        self.generate_report_button.setFixedWidth(200)
+        self.generate_report_button.setFixedWidth(400)
 
         button_layout.addWidget(self.generate_report_button)
         main_layout.addLayout(button_layout)
@@ -165,7 +166,7 @@ class ReportGenerationPage(QWidget):
         self.filter_button.clicked.connect(self.toggle_filter_panel)
         apply_filter_btn.clicked.connect(self.apply_filters)
         clear_filters_btn.clicked.connect(self.reset_filters)
-        self.generate_report_button.clicked.connect(self.generate_excel_report)
+        self.generate_report_button.clicked.connect(self.export_table_to_excel)
 
     def load_requests(self):
         self.unified_requests = get_all_unified_requests_ordered()
@@ -233,9 +234,43 @@ class ReportGenerationPage(QWidget):
         self.filter_button.setText(" Filtrar tabla")
         self.repaint()  # Force UI update
 
-    def generate_excel_report(self):
-        # Placeholder for Excel report generation logic
-        print("Generating Excel report...")
+    def export_table_to_excel(self):
+        # Prepare data from the current table view
+        data: List[Dict[str, str]] = []  # Explicitly define the type of data
+        for row in range(self.table.rowCount()):
+            record: Dict[str, str] = {  # Explicitly define the type of record
+                "type_": self.get_cell_text(row, 2),
+                "permit_type_name": self.get_cell_text(row, 3),
+                "employee_name": self.get_cell_text(row, 0),
+                "employee_national_id": self.get_cell_text(row, 1),
+                "request_date": self.get_cell_text(row, 4),
+                "start_date": self.get_cell_text(row, 5),
+                "end_date": self.get_cell_text(row, 6),
+                "check_in_time": self.get_cell_text(row, 7),
+                "check_out_time": self.get_cell_text(row, 8),
+                "total_days": self.get_cell_text(row, 9),
+                "status": self.get_cell_text(row, 10),
+                "supervisor_name": self.get_cell_text(row, 11),
+            }
+            data.append(record)
+
+        # Open a file dialog for the user to select the save location
+        output_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar reporte en Excel",
+            "Reporte.xlsx",
+            "Excel Files (*.xlsx)"
+        )
+
+        # If the user cancels the dialog, do nothing
+        if not output_path:
+            return
+
+        # Generate the Excel report
+        if generate_excel_report(output_path, data):
+            QMessageBox.information(self, "Éxito", f"Reporte de excel generado satisfactoriamente: {output_path}")
+        else:
+            QMessageBox.warning(self, "Error", "No se pudo generar el reporte de Excel.")
 
     def toggle_filter_panel(self):
         self.filter_frame.setVisible(not self.filter_frame.isVisible())
@@ -243,6 +278,10 @@ class ReportGenerationPage(QWidget):
             self.filter_button.setText(" Ocultar filtros")
         else:
             self.filter_button.setText(" Filtrar tabla")
+
+    def get_cell_text(self, row: int, col: int) -> str:
+        item = self.table.item(row, col)
+        return item.text() if item is not None else "-"
 
 # Helper for QTableWidgetItem with alignment
 def QLabelItem(text: str) -> QTableWidgetItem:
