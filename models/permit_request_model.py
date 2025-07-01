@@ -204,3 +204,45 @@ class PermitRequest:
             return False
         finally:
             conn.close()
+            
+    @staticmethod
+    def get_all_permit_requests_ordered() -> List['PermitRequest']:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            logging.error("Could not connect to the database.")
+            return []
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT *
+                FROM SolicitudPermiso
+                ORDER BY 
+                    CASE estado
+                        WHEN 'Pendiente' THEN 1
+                        WHEN 'Aprobado' THEN 2
+                        WHEN 'Denegado' THEN 3
+                        ELSE 4
+                    END
+            """)
+            rows = cursor.fetchall()
+            return [
+                PermitRequest(
+                    permit_request_id=row[0],
+                    request_date=row[1],
+                    absence_date=row[2],
+                    check_in_time=row[3],
+                    check_out_time=row[4],
+                    status=row[5],
+                    week_number=row[6],
+                    employee_national_id=row[7],
+                    permit_type_id=row[8],
+                    approver_national_id=row[9]
+                )
+                for row in rows
+            ]
+        except Exception as e:
+            logging.error(f"Error retrieving all permit requests: {e}")
+            return []
+        finally:
+            conn.close()

@@ -251,3 +251,44 @@ class VacationRequest:
             return False
         finally:
             conn.close()
+            
+    @staticmethod
+    def get_all_vacation_requests_ordered() -> List['VacationRequest']:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            logging.error("Could not connect to the database.")
+            return []
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT *
+                FROM SolicitudVacaciones
+                ORDER BY 
+                    CASE estado
+                        WHEN 'Pendiente' THEN 1
+                        WHEN 'Aprobado' THEN 2
+                        WHEN 'Denegado' THEN 3
+                        ELSE 4
+                    END
+            """)
+            rows = cursor.fetchall()
+            return [
+                VacationRequest(
+                    vacation_request_id=row[0],
+                    request_date=parse_date(row[1]),
+                    start_date=parse_date(row[2]),
+                    end_date=parse_date(row[3]),
+                    total_days=row[4],
+                    status=row[5],
+                    week_number=row[6],
+                    employee_national_id=row[7],
+                    approver_national_id=row[8]
+                )
+                for row in rows
+            ]
+        except Exception as e:
+            logging.error(f"Error retrieving all vacation requests: {e}")
+            return []
+        finally:
+            conn.close()
