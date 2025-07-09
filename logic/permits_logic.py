@@ -13,7 +13,7 @@ class PermitsLogic:
     def get_permit_full_info_by_supervisor_id(supervisor_national_id: str) -> List[Dict[str, Any]]:
         permits = PermitRequest.get_permits_by_supervisor_id(supervisor_national_id)
         if not permits:
-            logging.warning(f"No permits found for supervisor with national_id: {supervisor_national_id}")
+            logging.warning(f"No permits found for supervisor with national_id: {supervisor_national_id.strip()}")
             return []
 
         permits_info: List[Dict[str, Any]] = []
@@ -64,11 +64,11 @@ class PermitsLogic:
             if permit.status.lower() in ("aprobado", "pendiente"):
                 if permit.absence_date == absence_date:
                     logging.debug(
-                        f"Overlapping permit found for national_id {employee_national_id} on {absence_date}"
+                        f"Overlapping permit found for national_id {employee_national_id.strip()} on {absence_date}"
                     )
                     return True, "Ya existe un permiso aprobado o pendiente para esa fecha."
         logging.debug(
-            f"No overlapping permit found for national_id {employee_national_id} on {absence_date}"
+            f"No overlapping permit found for national_id {employee_national_id.strip()} on {absence_date}"
         )
         return False, ""
     
@@ -84,12 +84,12 @@ class PermitsLogic:
             if vac.status.lower() in ("aprobado", "pendiente"):
                 if vac.start_date <= absence_date <= vac.end_date:
                     logging.debug(
-                        f"Overlapping vacation found for national_id {employee_national_id} on {absence_date} "
+                        f"Overlapping vacation found for national_id {employee_national_id.strip()} on {absence_date} "
                         f"(vacation from {vac.start_date} to {vac.end_date}, status={vac.status})"
                     )
                     return True, "Ya existe una vacación aprobado o pendiente para esa fecha."
         logging.debug(
-            f"No overlapping vacation found for national_id {employee_national_id} on {absence_date}"
+            f"No overlapping vacation found for national_id {employee_national_id.strip()} on {absence_date}"
         )
         return False, ""
 
@@ -118,7 +118,7 @@ class PermitsLogic:
             employee_payroll_type = getattr(employee, "payroll_type", "").lower()
             if not (employee_payroll_type == target_group_name):
                 logging.info(
-                    f"Employee {employee_national_id} does not belong to target group '{target_group_name}'. Payroll type: {employee_payroll_type}"
+                    f"Employee {employee_national_id.strip()} does not belong to target group '{target_group_name}'. Payroll type: {employee_payroll_type}"
                 )
                 return False, f"Solo personal {target_group_name} puede solicitar este permiso."
             
@@ -128,7 +128,7 @@ class PermitsLogic:
             if isinstance(birthday, str):
                 birthday = date.fromisoformat(birthday)
         except (ValueError, TypeError):
-            logging.error(f"Fecha de nacimiento inválida para el empleado {employee_national_id}: {employee.birth_date}")
+            logging.error(f"Fecha de nacimiento inválida para el empleado {employee_national_id.strip()}: {employee.birth_date}")
             return False, "La fecha de nacimiento del empleado no es válida."
 
         # Ensure the selected date is in the birthday month
@@ -137,7 +137,7 @@ class PermitsLogic:
         
         current_year = date.today().year
         if selected_date.year > current_year:
-            logging.warning(f"Employee {employee_national_id} attempted to request a birthday benefit for a future year: {selected_date.year}.")
+            logging.warning(f"Employee {employee_national_id.strip()} attempted to request a birthday benefit for a future year: {selected_date.year}.")
             return False, "No puedes solicitar el permiso de cumpleaños para un año futuro."
 
         # Check if the employee has already requested a birthday benefit in the same year
@@ -150,7 +150,7 @@ class PermitsLogic:
                 permit.absence_date.year == selected_date.year and
                 permit.status.lower() in ("aprobado", "pendiente")
             ):
-                logging.info(f"Employee {employee_national_id} already has a pending or approved birthday leave for year {selected_date.year}.")
+                logging.info(f"Employee {employee_national_id.strip()} already has a pending or approved birthday leave for year {selected_date.year}.")
                 return False, "Ya has solicitado o tienes aprobado el permiso de cumpleaños este año."
 
         # Check if the employee has already requested a birthday benefit in the same month
@@ -162,10 +162,10 @@ class PermitsLogic:
                 permit.absence_date.month == selected_date.month and
                 permit.status.lower() in ("aprobado", "pendiente")
             ):
-                logging.info(f"Employee {employee_national_id} already has a pending or approved birthday leave for month {selected_date.month}.")
+                logging.info(f"Employee {employee_national_id.strip()} already has a pending or approved birthday leave for month {selected_date.month}.")
                 return False, "Ya has solicitado o tienes aprobado el permiso de cumpleaños este mes."
 
-        logging.info(f"Birthday leave validated for employee {employee_national_id} on {selected_date}.")
+        logging.info(f"Birthday leave validated for employee {employee_national_id.strip()} on {selected_date}.")
         return True, "Permiso de cumpleaños válido."
 
     @staticmethod
@@ -203,7 +203,7 @@ class PermitsLogic:
                 matching_policy = policy
                 break
         if not matching_policy:
-            logging.info(f"No experience years policy matches {years_experience} years for employee {employee_national_id}")
+            logging.info(f"No experience years policy matches {years_experience} years for employee {employee_national_id.strip()}")
             return False, "No existe una política para tus años de experiencia."
 
         # Target group validation
@@ -213,7 +213,7 @@ class PermitsLogic:
             employee_payroll_type = getattr(employee, "payroll_type", "").lower()
             if not (employee_payroll_type == target_group_name):
                 logging.info(
-                    f"Employee {employee_national_id} does not belong to target group '{target_group_name}'. Payroll type: {employee_payroll_type}"
+                    f"Employee {employee_national_id.strip()} does not belong to target group '{target_group_name}'. Payroll type: {employee_payroll_type}"
                 )
                 return False, f"Solo personal {target_group_name} puede solicitar este permiso."
 
@@ -221,7 +221,7 @@ class PermitsLogic:
         available_vacation_days: int = PermitsLogic.get_available_vacation_days(employee_national_id)
         if not meets_condition(matching_policy.vacation_condition, available_vacation_days):
             logging.info(
-                f"Employee {employee_national_id} does not meet vacation condition '{matching_policy.vacation_condition}' (has {available_vacation_days} days)."
+                f"Employee {employee_national_id.strip()} does not meet vacation condition '{matching_policy.vacation_condition}' (has {available_vacation_days} days)."
             )
             return False, f"No cumples la condición de vacaciones ({matching_policy.vacation_condition.replace('_', ' ')}) para solicitar este permiso."
 
@@ -241,10 +241,10 @@ class PermitsLogic:
         # Check if the employee has remaining days for this benefit
         allowed_days = matching_policy.allowed_days  # e.g., 2, 3, or 4
         if used_days >= allowed_days:
-            logging.info(f"Employee {employee_national_id} has already used all allowed experience benefit days for {selected_date.year}.")
+            logging.info(f"Employee {employee_national_id.strip()} has already used all allowed experience benefit days for {selected_date.year}.")
             return False, "Ya has utilizado todos los días permitidos por años de experiencia este año."
 
-        logging.info(f"Experience years benefit validated for employee {employee_national_id} on {selected_date}.")
+        logging.info(f"Experience years benefit validated for employee {employee_national_id.strip()} on {selected_date}.")
         return True, "Permiso de años de experiencia válido."
     
     @staticmethod

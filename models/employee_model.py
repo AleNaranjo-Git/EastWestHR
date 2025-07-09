@@ -58,7 +58,7 @@ class Employee:
                     email=row[9],
                     birth_date=row[10]
                 )
-            logging.warning(f"No employee found with national_id: {national_id[:8]}...")
+            logging.warning(f"No employee found with national_id: {national_id[:8].strip()}...")
             return None
         except Exception as e:
             logging.error(f"Error searching for employee: {e}")
