@@ -121,13 +121,26 @@ class PermitsLogic:
                     f"Employee {employee_national_id} does not belong to target group '{target_group_name}'. Payroll type: {employee_payroll_type}"
                 )
                 return False, f"Solo personal {target_group_name} puede solicitar este permiso."
+            
+        # Validate the employee's birth date
+        try:
+            birthday = employee.birth_date
+            if isinstance(birthday, str):
+                birthday = date.fromisoformat(birthday)
+        except (ValueError, TypeError):
+            logging.error(f"Fecha de nacimiento inválida para el empleado {employee_national_id}: {employee.birth_date}")
+            return False, "La fecha de nacimiento del empleado no es válida."
 
-        # Allow any day in the birthday month
-        birthday = employee.birth_date
+        # Ensure the selected date is in the birthday month
         if birthday.month != selected_date.month:
             return False, "Solo puedes solicitar el permiso de cumpleaños en el mes de tu cumpleaños."
+        
+        current_year = date.today().year
+        if selected_date.year > current_year:
+            logging.warning(f"Employee {employee_national_id} attempted to request a birthday benefit for a future year: {selected_date.year}.")
+            return False, "No puedes solicitar el permiso de cumpleaños para un año futuro."
 
-        # Check if already has a pending or approved birthday permit this year
+        # Check if the employee has already requested a birthday benefit in the same year
         permits = PermitRequest.get_permits_by_employee_national_id(employee_national_id)
         for permit in permits:
             permit_type = PermitType.get_permit_type_by_id(permit.permit_type_id)
@@ -139,6 +152,18 @@ class PermitsLogic:
             ):
                 logging.info(f"Employee {employee_national_id} already has a pending or approved birthday leave for year {selected_date.year}.")
                 return False, "Ya has solicitado o tienes aprobado el permiso de cumpleaños este año."
+
+        # Check if the employee has already requested a birthday benefit in the same month
+        for permit in permits:
+            permit_type = PermitType.get_permit_type_by_id(permit.permit_type_id)
+            if (
+                permit_type and
+                permit_type.permit_type_name.lower() == "beneficio cumpleaños" and
+                permit.absence_date.month == selected_date.month and
+                permit.status.lower() in ("aprobado", "pendiente")
+            ):
+                logging.info(f"Employee {employee_national_id} already has a pending or approved birthday leave for month {selected_date.month}.")
+                return False, "Ya has solicitado o tienes aprobado el permiso de cumpleaños este mes."
 
         logging.info(f"Birthday leave validated for employee {employee_national_id} on {selected_date}.")
         return True, "Permiso de cumpleaños válido."
@@ -269,10 +294,7 @@ class PermitsLogic:
         permit_type_id: int,
         approver_national_id: str
     ) -> Tuple[bool, str]:
-        """
-        Validates and creates a permit request, saving it to the database.
-        Returns (True, "") if created successfully, (False, reason) otherwise.
-        """
+
         # Get permit type name
         permit_type = PermitType.get_permit_type_by_id(permit_type_id)
         if not permit_type:

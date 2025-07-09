@@ -1,6 +1,6 @@
 from db.connection import DatabaseConnection
 import logging
-from typing import List, Type, TypeVar
+from typing import List, Type, TypeVar, Optional
 
 permit_type_t = TypeVar("permit_type_t", bound="PermitType")
 
@@ -61,5 +61,27 @@ class PermitType:
         except Exception as e:
             logging.error(f"Error retrieving active permit types: {e}")
             return []
+        finally:
+            conn.close()
+            
+    @classmethod
+    def get_id_by_name(cls, permit_type_name: str) -> Optional[int]:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            logging.error("No database connection available.")
+            return None
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT idTipoPermiso FROM TipoPermiso WHERE nombreTipoPermiso = ?", (permit_type_name,))
+            row = cursor.fetchone()
+            cursor.close()
+            if row:
+                return row[0]  # Return the permit_type_id
+            logging.warning(f"No permit type found with name: {permit_type_name}")
+            return None
+        except Exception as e:
+            logging.error(f"Error retrieving permit type ID by name: {e}")
+            return None
         finally:
             conn.close()

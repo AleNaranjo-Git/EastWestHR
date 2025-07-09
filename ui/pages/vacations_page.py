@@ -237,11 +237,11 @@ class VacationsPage(QWidget):
 
         # Gather all required fields
         from logic.vacations_logic import VacationsLogic
-        if not self.employee_info or "employee_id" not in self.employee_info:
+        if not self.employee_info or "national_id" not in self.employee_info:
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID del empleado.")
             self.submit_button.setEnabled(True)
             return
-        employee_id: str = str(self.employee_info["employee_id"])
+        national_id: str = str(self.employee_info["national_id"])
         total_days: int = len(VacationsLogic.get_business_days_in_range(start_date, end_date))
         status: str = (self.status_input.text().strip() or "pendiente").lower()
         week_number: int = start_date.isocalendar()[1]
@@ -255,7 +255,7 @@ class VacationsPage(QWidget):
             total_days,
             status,
             week_number,
-            employee_id,
+            national_id,
             approved_by_id
         )
         if success:
