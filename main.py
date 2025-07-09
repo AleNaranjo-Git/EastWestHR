@@ -12,10 +12,12 @@ else:
     setup_logging(default_level="DEBUG", file_level="INFO")
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 from ui.windows.main_window import MainWindow
 import sys
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("resources/icons/EW_vertical_logo_800x561.ico"))
     main_window = MainWindow()
     app.exec()
