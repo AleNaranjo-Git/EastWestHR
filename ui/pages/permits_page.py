@@ -1,6 +1,7 @@
+from datetime import date, time
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFormLayout,
-    QComboBox, QDateEdit, QHBoxLayout, QFrame, QSizePolicy, QSpacerItem
+    QComboBox, QDateEdit, QHBoxLayout, QFrame, QSizePolicy, QSpacerItem, QMessageBox
 )
 from PySide6.QtCore import Qt, QDate, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
@@ -10,6 +11,7 @@ from resources.styles.components import (
 )
 from logic.employee_logic import EmployeeLogic
 from logic.auth import Session
+from logic.permits_logic import PermitsLogic
 from models.permit_type_model import PermitType
 from typing import List 
 
@@ -26,7 +28,7 @@ class PermitsPage(QWidget):
             self.national_id_input.setText(national_id)
             self.national_id_input.setReadOnly(True)
             self.national_id_input.setEnabled(False)
-
+        
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -197,6 +199,7 @@ class PermitsPage(QWidget):
         self.submit_button.setToolTip("Enviar la solicitud de permiso")
         container_layout.addWidget(self.submit_button)
         self.submit_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.submit_button.clicked.connect(self.validate_and_submit)
 
         # Bottom spacer to separate content from lower border
         container_layout.addSpacerItem(QSpacerItem(
@@ -241,3 +244,86 @@ class PermitsPage(QWidget):
         if len(text) == 2 and not text.endswith(":"):
             self.exit_time_input.setText(text + ":")
             self.exit_time_input.setCursorPosition(3)
+
+    def validate_and_submit(self):
+        """
+        Validates the form inputs and submits the permit request.
+        """
+        # Show confirmation dialog before proceeding
+        reply = QMessageBox.question(
+            self,
+            "Confirmar solicitud",
+            "¿Está seguro/a que toda la información introducida es correcta?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        # National ID validation
+        national_id = self.national_id_input.text().strip()
+        if not national_id.isdigit() or len(national_id) != 9:
+            QMessageBox.warning(self, "Error", "La cédula debe contener exactamente 9 números.")
+            return
+
+        # Absence date validation
+        absence_date_qdate = self.absence_date_input.date()
+        absence_date = date(
+            absence_date_qdate.year(),
+            absence_date_qdate.month(),
+            absence_date_qdate.day()
+        )
+        today = date.today()
+        if absence_date < today:
+            QMessageBox.warning(self, "Error", "No puede solicitar un permiso para una fecha pasada.")
+            return
+
+        # Entry and exit time validation
+        entry_time_text = self.entry_time_input.text().strip()
+        exit_time_text = self.exit_time_input.text().strip()
+        if not entry_time_text or not exit_time_text:
+            QMessageBox.warning(self, "Error", "Debe ingresar las horas de ingreso y salida.")
+            return
+
+        try:
+            entry_time = time.fromisoformat(entry_time_text)
+            exit_time = time.fromisoformat(exit_time_text)
+        except ValueError:
+            QMessageBox.warning(self, "Error", "El formato de las horas debe ser HH:mm.")
+            return
+
+        # Permit type validation
+        permit_type_name = self.permit_type_combo.currentText()
+        permit_type = PermitType.get_id_by_name(permit_type_name)
+        if not permit_type:
+            QMessageBox.warning(self, "Error", "El tipo de permiso seleccionado no es válido.")
+            return
+
+        # Gather all required fields
+        request_date_qdate = self.request_date_input.date()
+        request_date = date(
+            request_date_qdate.year(),
+            request_date_qdate.month(),
+            request_date_qdate.day()
+        )
+        status = self.status_input.text().strip().lower()
+        week_number = absence_date.isocalendar()[1]
+
+        # Ensure approved_by_id is a string
+        approved_by_id = str(self.current_supervisor_id) if self.current_supervisor_id else ""
+
+        # Call backend logic with all fields
+        success, message = PermitsLogic.create_permit_request(
+            request_date,
+            absence_date,
+            entry_time,
+            exit_time,
+            status,
+            week_number,
+            national_id,
+            permit_type,
+            approved_by_id
+        )
+        if success:
+            QMessageBox.information(self, "Éxito", "Solicitud de permiso enviada correctamente.")
+        else:
+            QMessageBox.warning(self, "Error", message)

@@ -9,6 +9,7 @@ class Session:
     current_user: Optional[Dict[str, Any]] = None
 
 def authenticate(email: str, password: str) -> AuthResult:
+    email = email.strip()
     db = DatabaseConnection()
     conn = db.connect()
     

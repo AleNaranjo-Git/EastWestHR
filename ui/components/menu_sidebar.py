@@ -36,6 +36,7 @@ class MenuSidebar(QWidget):
             ("FCL", "FCL"),
             ("Pendiente Aprobar", "Pendiente Aprobar"),
             ("Generar Documento", "Generar Documento"),
+            ("Generar Reporte", "Generar Reporte"),
         ]
 
         for key, label in names:
@@ -101,7 +102,7 @@ class MenuSidebar(QWidget):
         class PanelEventFilter(QObject):
             def __init__(self, parent_widget: QWidget, panel: QWidget):
                 super().__init__(parent_widget)
-                self.parent_widget: QWidget = parent_widget  # Renamed from `parent`
+                self.parent_widget: QWidget = parent_widget
                 self.panel: QWidget = panel
 
             def eventFilter(self, obj: QObject, event: QEvent) -> bool:

@@ -10,7 +10,7 @@ class EmployeeLogic:
         """
         employee = Employee.get_employee_by_national_id(national_id)
         if not employee:
-            logging.warning(f"No employee found with national_id: {national_id}")
+            logging.warning(f"No employee found with national_id: {national_id.strip()}")
             return None
 
         supervisor = Employee.get_employee_by_national_id(employee.supervisor) if employee.supervisor else None

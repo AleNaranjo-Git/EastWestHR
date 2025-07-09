@@ -10,7 +10,7 @@ class VacationsLogic:
     def get_months_worked(employee_national_id: str) -> int:
         employee = Employee.get_employee_by_national_id(employee_national_id)
         if not employee or not employee.hire_date:
-            logging.warning(f"Employee not found or missing hire date for national_id: {employee_national_id}")
+            logging.warning(f"Employee not found or missing hire date for national_id: {employee_national_id.strip()}")
             return 0
 
         hire_date = employee.hire_date
@@ -19,7 +19,7 @@ class VacationsLogic:
         if today.day < hire_date.day:
             months -= 1
 
-        logging.debug(f"Months worked for national_id {employee_national_id}: {max(0, months)}")
+        logging.debug(f"Months worked for national_id {employee_national_id.strip()}: {max(0, months)}")
         return max(0, months)
     
     @staticmethod
@@ -29,7 +29,7 @@ class VacationsLogic:
         for vac in vacations:
             if vac.status.lower() == "aprobado":
                 total += vac.total_days
-        logging.debug(f"Approved vacation days for national_id {employee_national_id}: {total}")
+        logging.debug(f"Approved vacation days for national_id {employee_national_id.strip()}: {total}")
         return total
     
     @staticmethod
@@ -39,7 +39,7 @@ class VacationsLogic:
         for vac in vacations:
             if vac.status.lower() == "pendiente":
                 total += vac.total_days
-        logging.debug(f"Pending vacation days for national_id {employee_national_id}: {total}")
+        logging.debug(f"Pending vacation days for national_id {employee_national_id.strip()}: {total}")
         return total
     
     @staticmethod
@@ -62,9 +62,9 @@ class VacationsLogic:
         for vac in vacations:
             if vac.status.lower() in ("aprobado", "pendiente"):
                 if start_date <= vac.end_date and end_date >= vac.start_date:
-                    logging.debug(f"Overlapping vacation found for national_id {employee_national_id} in range {start_date} to {end_date}")
+                    logging.debug(f"Overlapping vacation found for national_id {employee_national_id.strip()} in range {start_date} to {end_date}")
                     return True
-        logging.debug(f"No overlapping vacation found for national_id {employee_national_id} in range {start_date} to {end_date}")
+        logging.debug(f"No overlapping vacation found for national_id {employee_national_id.strip()} in range {start_date} to {end_date}")
         return False
     
     @staticmethod
@@ -77,9 +77,9 @@ class VacationsLogic:
         for permit in permits:
             if permit.status.lower() in ("aprobado", "pendiente"):
                 if start_date <= permit.absence_date <= end_date:
-                    logging.debug(f"Overlapping permit found for national_id {employee_national_id} on {permit.absence_date} in range {start_date} to {end_date}")
+                    logging.debug(f"Overlapping permit found for national_id {employee_national_id.strip()} on {permit.absence_date} in range {start_date} to {end_date}")
                     return True
-        logging.debug(f"No overlapping permit found for national_id {employee_national_id} in range {start_date} to {end_date}")
+        logging.debug(f"No overlapping permit found for national_id {employee_national_id.strip()} in range {start_date} to {end_date}")
         return False
     
     @staticmethod
@@ -92,24 +92,24 @@ class VacationsLogic:
         requested_business_days = len(VacationsLogic.get_business_days_in_range(start_date, end_date))
 
         if VacationsLogic.has_overlapping_vacation(employee_national_id, start_date, end_date):
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: overlapping vacation in range {start_date} to {end_date}")
+            logging.warning(f"Vacation request denied for national_id {employee_national_id.strip()}: overlapping vacation in range {start_date} to {end_date}")
             return False, "Ya existe una vacación aprobada o pendiente en ese rango."
         
         if VacationsLogic.has_overlapping_permit_for_vacation(employee_national_id, start_date, end_date):
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: overlapping permit in range {start_date} to {end_date}")
+            logging.warning(f"Vacation request denied for national_id {employee_national_id.strip()}: overlapping permit in range {start_date} to {end_date}")
             return False, "Ya existe un permiso aprobado o pendiente en ese rango."
 
         if start_date > end_date:
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: start date after end date.")
+            logging.warning(f"Vacation request denied for national_id {employee_national_id.strip()}: start date after end date.")
             return False, "La fecha de inicio no puede ser posterior a la fecha final."
         if requested_business_days <= 0:
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: no business days in range.")
+            logging.warning(f"Vacation request denied for national_id {employee_national_id.strip()}: no business days in range.")
             return False, "No hay días laborales en el rango seleccionado."
         if requested_business_days > available_days:
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: not enough available days. Available: {available_days}, requested: {requested_business_days}")
+            logging.warning(f"Vacation request denied for national_id {employee_national_id.strip()}: not enough available days. Available: {available_days}, requested: {requested_business_days}")
             return False, f"No tiene suficientes días disponibles. Disponibles: {available_days}, solicitados: {requested_business_days}"
 
-        logging.info(f"Vacation request approved for national_id {employee_national_id}: {requested_business_days} business days requested.")
+        logging.info(f"Vacation request approved for national_id {employee_national_id.strip()}: {requested_business_days} business days requested.")
         return True, ""
 
     @staticmethod
@@ -129,7 +129,6 @@ class VacationsLogic:
         """
         can_request, reason = VacationsLogic.can_request_vacation(employee_national_id, start_date, end_date)
         if not can_request:
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: {reason}")
             return False, reason
 
         try:
@@ -145,13 +144,13 @@ class VacationsLogic:
             )
             if result:
                 logging.info(
-                    f"Vacation request created for national_id {employee_national_id} from {start_date} to {end_date}"
+                    f"Vacation request created for national_id {employee_national_id.strip()} from {start_date} to {end_date}"
                 )
                 return True, ""
             else:
                 return False, "Error al guardar la solicitud en la base de datos."
         except Exception as e:
             logging.error(
-                f"Error creating vacation request for national_id {employee_national_id}: {e}"
+                f"Error creating vacation request for national_id {employee_national_id.strip()}: {e}"
             )
             return False, "Error interno al crear la solicitud."

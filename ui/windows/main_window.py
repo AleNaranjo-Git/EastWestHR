@@ -7,6 +7,7 @@ from ui.pages.salary_certificate_page import SalaryCertificatePage
 from ui.pages.fcl_page import FCLPage
 from ui.pages.pending_request_page import PendingRequestPage
 from ui.pages.document_request_page import DocumentRequestPage
+from ui.pages.report_generation_page import ReportGenerationPage
 from logic.auth import get_current_user_role, Session
 
 class MainWindow(QMainWindow):
@@ -65,9 +66,13 @@ class MainWindow(QMainWindow):
 
         if user_role in (1, 3):
             self.document_request_page = DocumentRequestPage()
+            self.report_generation_page = ReportGenerationPage()
             self.stack.addWidget(self.document_request_page)
+            self.stack.addWidget(self.report_generation_page)
             self.menu.buttons["Generar Documento"].clicked.connect(lambda: self.stack.setCurrentWidget(self.document_request_page))
+            self.menu.buttons["Generar Reporte"].clicked.connect(lambda: self.stack.setCurrentWidget(self.report_generation_page))
         else:
             self.menu.buttons["Generar Documento"].setVisible(False)
+            self.menu.buttons["Generar Reporte"].setVisible(False)
 
         self.showMaximized()
