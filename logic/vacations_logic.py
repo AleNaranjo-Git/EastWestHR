@@ -129,7 +129,6 @@ class VacationsLogic:
         """
         can_request, reason = VacationsLogic.can_request_vacation(employee_national_id, start_date, end_date)
         if not can_request:
-            logging.warning(f"Vacation request denied for national_id {employee_national_id}: {reason}")
             return False, reason
 
         try:
