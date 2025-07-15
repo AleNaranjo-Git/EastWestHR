@@ -8,7 +8,7 @@ from resources.styles.colors import TEXT_COLOR, BACKGROUND
 from resources.styles.components import (
     INPUT_STYLE, BUTTON_STYLE, TITLE_STYLE, LABEL_STYLE, DATE_EDIT_STYLE
 )
-from logic.employee_logic import EmployeeLogic
+from models.employee_model import Employee
 from logic.auth import Session
 from datetime import date
 
@@ -169,13 +169,12 @@ class VacationsPage(QWidget):
     def on_national_id_changed(self, text: str) -> None:
         if len(text) != 9:
             return
-        employee_info = EmployeeLogic.get_employee_full_info_by_national_id(text)
+        employee_info = Employee.get_employee_by_national_id(text)
         if employee_info:
-            full_name = f"{employee_info['first_name'].strip()} {employee_info['last_name_1'].strip()} {employee_info['last_name_2'].strip()}"
+            full_name = f"{employee_info.first_name.strip()} {employee_info.last_name_1.strip()} {employee_info.last_name_2.strip()}"
             self.employee_name_input.setText(full_name)
-            supervisor_name = employee_info['supervisor'] if employee_info['supervisor'] else ""
+            supervisor_name = employee_info.supervisor.strip() if employee_info.supervisor else ""
             self.supervisor_input.setText(supervisor_name)
-            self.current_supervisor_id = employee_info.get('supervisor_id', None)
             self.employee_info = employee_info
 
     def validate_and_submit(self):
@@ -237,15 +236,25 @@ class VacationsPage(QWidget):
 
         # Gather all required fields
         from logic.vacations_logic import VacationsLogic
-        if not self.employee_info or "national_id" not in self.employee_info:
-            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del empleado.")
+        if not self.employee_info:
+            QMessageBox.warning(self, "Error", "No se pudo obtener la información del empleado.")
             self.submit_button.setEnabled(True)
             return
-        national_id: str = str(self.employee_info["national_id"])
-        total_days: int = len(VacationsLogic.get_business_days_in_range(start_date, end_date))
-        status: str = (self.status_input.text().strip() or "pendiente").lower()
-        week_number: int = start_date.isocalendar()[1]
-        approved_by_id = self.current_supervisor_id if hasattr(self, "current_supervisor_id") else None
+
+        # Get supervisor's national ID using the full name
+        supervisor_name = self.supervisor_input.text().strip()
+        approved_by_id = None
+        if supervisor_name:
+            approved_by_id = Employee.get_national_id_by_full_name(supervisor_name)
+            if not approved_by_id:
+                QMessageBox.warning(self, "Error", f"No se encontró la cédula del supervisor: {supervisor_name}.")
+                self.submit_button.setEnabled(True)
+                return
+
+        national_id = self.employee_info.national_id
+        total_days = len(VacationsLogic.get_business_days_in_range(start_date, end_date))
+        status = (self.status_input.text().strip() or "pendiente").lower()
+        week_number = start_date.isocalendar()[1]
 
         # Call backend logic with all fields
         success, message = VacationsLogic.create_vacation_request(
