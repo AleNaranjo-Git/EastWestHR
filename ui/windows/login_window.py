@@ -12,6 +12,7 @@ from resources.styles.components import (
     ERROR_LABEL_STYLE,
     BACKGROUND
 )
+from utils.resource_path import get_resource_path
 
 
 class LoginWindow(QWidget):
@@ -36,11 +37,20 @@ class LoginWindow(QWidget):
 
         # --- Company logo, always centered and fixed size ---
         img_label = QLabel()
-        pixmap = QPixmap("resources/icons/EW_vertical_logo_1000x702.png")
-        img_label.setPixmap(
-            pixmap.scaled(350, 350, Qt.AspectRatioMode.KeepAspectRatio,
-                          Qt.TransformationMode.SmoothTransformation)
-        )
+        
+        logo_path = get_resource_path("resources/icons/EW_vertical_logo_1000x702.png")
+        pixmap = QPixmap(logo_path)
+        
+        if pixmap.isNull():
+            img_label.setText("Logo\nEast West")
+            img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            img_label.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
+        else:
+            img_label.setPixmap(
+                pixmap.scaled(350, 350, Qt.AspectRatioMode.KeepAspectRatio,
+                              Qt.TransformationMode.SmoothTransformation)
+            )
+        
         img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         img_label.setFixedWidth(400)
         img_label.setFixedHeight(400)

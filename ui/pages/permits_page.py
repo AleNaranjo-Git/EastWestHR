@@ -13,7 +13,9 @@ from models.employee_model import Employee
 from logic.auth import Session
 from logic.permits_logic import PermitsLogic
 from models.permit_type_model import PermitType
+from logic.email_service import send_email, fetch_recipients
 from typing import List 
+import logging
 
 
 class PermitsPage(QWidget):
@@ -333,5 +335,47 @@ class PermitsPage(QWidget):
         )
         if success:
             QMessageBox.information(self, "Éxito", "Solicitud de permiso enviada correctamente.")
+            self.notify_permit_request(national_id)
         else:
             QMessageBox.warning(self, "Error", message)
+            
+    def notify_permit_request(self, national_id: str):
+        """
+        Notify relevant departments and the supervisor about a vacation request.
+        """
+        # Define the departments to notify
+        departments = ["TestEmail", "AnotherDepartment"]
+
+        # Fetch employee information
+        employee_info = Employee.get_employee_by_national_id(national_id)
+        if not employee_info:
+            QMessageBox.warning(self, "Error", f"No se encontró información del empleado con cédula: {national_id}.")
+            logging.warning(f"No employee found with National ID: {national_id}.")
+            return
+
+        # Fetch supervisor's national ID if a supervisor exists
+        supervisor_id = None
+        if employee_info.supervisor:
+            supervisor_id = Employee.get_national_id_by_full_name(employee_info.supervisor)
+            if not supervisor_id:
+                QMessageBox.warning(self, "Error", f"No se encontró la cédula del supervisor: {employee_info.supervisor}.")
+                logging.warning(f"No national ID found for supervisor: {employee_info.supervisor}.")
+
+        # Fetch recipients
+        recipients = fetch_recipients(employee_info.national_id, supervisor_id, departments)  # type: ignore[call-arg]
+        if not recipients:
+            QMessageBox.warning(self, "Error", "No se encontraron destinatarios para el correo.")
+            logging.warning("No recipients found for the email.")
+            return
+
+        # Email details
+        subject = "Solicitud de Permiso"
+        body = f"Se ha enviado una solicitud de permiso por parte del empleado con cédula: {national_id}."
+
+        # Send the email
+        if send_email(subject, body, recipients):
+            QMessageBox.information(self, "Éxito", "El correo de notificación se envió correctamente.")
+            logging.info(f"Email sent successfully for permit request by employee with National ID: {national_id}.")
+        else:
+            QMessageBox.warning(self, "Error", "No se pudo enviar el correo de notificación.")
+            logging.error(f"Failed to send email for permit request by employee with National ID: {national_id}.")

@@ -1,7 +1,7 @@
 import logging
 from db.connection import DatabaseConnection
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 class Employee:
     def __init__(
@@ -140,5 +140,56 @@ class Employee:
         except Exception as e:
             logging.error(f"Error fetching national ID for full name {full_name}: {e}")
             return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_email_by_national_id(national_id: str) -> Optional[str]:
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            logging.error("No database connection available.")
+            return None
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT email FROM VistaEmpleados2 WHERE cedula = ?",
+                (national_id,)
+            )
+            row = cursor.fetchone()
+            cursor.close()
+            if row:
+                return row[0]  # Email
+            logging.warning(f"No email found for national_id: {national_id}")
+            return None
+        except Exception as e:
+            logging.error(f"Error fetching email by national_id: {e}")
+            return None
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_emails_by_departments(departments: List[str]) -> List[str]:
+        if not departments:
+            logging.warning("No departments provided for email query.")
+            return []
+
+        db = DatabaseConnection()
+        conn = db.connect()
+        if conn is None:
+            logging.error("No database connection available.")
+            return []
+        try:
+            cursor = conn.cursor()
+            # Use the IN clause to fetch emails for multiple departments
+            placeholders = ", ".join("?" for _ in departments)
+            query = f"SELECT email FROM VistaEmpleados2 WHERE departamento IN ({placeholders})"
+            cursor.execute(query, departments)
+            rows = cursor.fetchall()
+            cursor.close()
+            return [row[0] for row in rows]  # Extract emails
+        except Exception as e:
+            logging.error(f"Error fetching emails by departments: {e}")
+            return []
         finally:
             conn.close()
