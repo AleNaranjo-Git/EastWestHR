@@ -328,10 +328,10 @@ class DocumentRequestPage(QWidget):
 
         # Generate the document
         success = generate_salary_certificate(save_path, template_path, {
+            "fecha": date.today().strftime("%Y-%m-%d"),
             "nombre": selected_request["employee_name"],
             "numeroCedula": selected_request["employee_national_id"],
-            "departamento": employee.department if employee else "Desconocido",
-            "fechaIngreso": selected_request["request_date"],
+            "fechaIngreso": employee.hire_date.strftime("%Y-%m-%d") if employee else "Desconocido",
             "puesto": employee.position if employee else "Desconocido"
         })
 
@@ -367,11 +367,12 @@ class DocumentRequestPage(QWidget):
 
         # Generate the document
         success = generate_fcl(save_path, template_path, {
+            "fecha": date.today().strftime("%Y-%m-%d"),
             "nombre": selected_request["employee_name"],
             "numeroCedula": selected_request["employee_national_id"],
-            "departamento": employee.department if employee else "Desconocido",
-            "fechaIngreso": selected_request["request_date"],
-            "puesto": employee.position if employee else "Desconocido"
+            "puesto": employee.position if employee else "Desconocido",
+            "fechaIngreso": employee.hire_date.strftime("%Y-%m-%d") if employee else "Desconocido",
+            "primerApellido": employee.last_name_1 if employee else "Desconocido"
         })
 
         if success:

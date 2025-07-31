@@ -68,3 +68,29 @@ logs/
 # Miscellaneous
 .DS_Store
 Thumbs.db
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+
+# PyInstaller builds
+build/
+dist/
+*.exe
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# Auto-generated PyInstaller files
+*.toc
+*.pyz
+*.zip
+*.tar.gz
+
+# UPX compressed files (if using UPX)
+*.upx
+
+# Build scripts output
+build.log

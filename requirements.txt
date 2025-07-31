@@ -1,0 +1,11 @@
+# Core dependencies for East West App
+bcrypt==4.3.0
+docxtpl==0.20.0
+holidays==0.74
+pyodbc==5.2.0
+PySide6==6.9.0
+python-dotenv==1.1.0
+xlsxwriter==3.2.5
+
+# Build tool (development only)
+pyinstaller==6.13.0
