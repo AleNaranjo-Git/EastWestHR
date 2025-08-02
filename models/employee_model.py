@@ -33,7 +33,7 @@ class Employee:
     @staticmethod
     def get_employee_by_national_id(national_id: str):
         """
-        Fetch an employee from VistaEmpleados2 by their national ID (cedula).
+        Fetch an employee from VistaEmpleados by their national ID (cedula).
         """
         db = DatabaseConnection()
         conn = db.connect()
@@ -43,7 +43,7 @@ class Employee:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM VistaEmpleados2 WHERE cedula = ?",
+                "SELECT * FROM VistaEmpleados WHERE cedula = ?",
                 national_id
             )
             row = cursor.fetchone()
@@ -73,7 +73,7 @@ class Employee:
     @staticmethod
     def get_full_name_by_national_id(national_id: str) -> Optional[str]:
         """
-        Fetch the full name of an employee from VistaEmpleados2 by their national ID (cedula).
+        Fetch the full name of an employee from VistaEmpleados by their national ID (cedula).
         """
         db = DatabaseConnection()
         conn = db.connect()
@@ -85,7 +85,7 @@ class Employee:
             cursor.execute(
                 """
                 SELECT RTRIM(nombre) + ' ' + RTRIM(apellidoPaterno) + ' ' + RTRIM(apellidoMaterno) AS full_name
-                FROM VistaEmpleados2
+                FROM VistaEmpleados
                 WHERE cedula = ?
                 """,
                 national_id
@@ -105,7 +105,7 @@ class Employee:
     @staticmethod
     def get_national_id_by_full_name(full_name: str) -> Optional[str]:
         """
-        Fetch the national ID (cedula) of an employee from VistaEmpleados2 by their full name.
+        Fetch the national ID (cedula) of an employee from VistaEmpleados by their full name.
         """
         db = DatabaseConnection()
         conn = db.connect()
@@ -126,7 +126,7 @@ class Employee:
             cursor.execute(
                 """
                 SELECT cedula
-                FROM VistaEmpleados2
+                FROM VistaEmpleados
                 WHERE RTRIM(nombre) = ? AND RTRIM(apellidoPaterno) = ? AND RTRIM(apellidoMaterno) = ?
                 """,
                 (first_name, last_name_1, last_name_2)
@@ -153,7 +153,7 @@ class Employee:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT correo FROM VistaEmpleados2 WHERE cedula = ?",
+                "SELECT correo FROM VistaEmpleados WHERE cedula = ?",
                 (national_id,)
             )
             row = cursor.fetchone()
@@ -183,7 +183,7 @@ class Employee:
             cursor = conn.cursor()
             # Use the IN clause to fetch emails for multiple departments
             placeholders = ", ".join("?" for _ in departments)
-            query = f"SELECT correo FROM VistaEmpleados2 WHERE departamento IN ({placeholders})"
+            query = f"SELECT correo FROM VistaEmpleados WHERE departamento IN ({placeholders})"
             cursor.execute(query, departments)
             rows = cursor.fetchall()
             cursor.close()

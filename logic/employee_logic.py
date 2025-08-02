@@ -13,7 +13,7 @@ class EmployeeLogic:
             logging.warning(f"No employee found with national_id: {national_id.strip()}")
             return None
 
-        supervisor = Employee.get_employee_by_national_id(employee.supervisor) if employee.supervisor else None
+        supervisor = Employee.get_national_id_by_full_name(employee.supervisor) if employee.supervisor else None
         
         return {
             "employee_id": str(employee.employee_id),
@@ -25,10 +25,7 @@ class EmployeeLogic:
             "hire_date": employee.hire_date,
             "department": employee.department,
             "position": employee.position,
-            "supervisor": (
-                f"{supervisor.first_name.strip()} {supervisor.last_name_1.strip()} {supervisor.last_name_2.strip()}"
-                if supervisor else None
-            ),
-            "supervisor_id": str(supervisor.employee_id) if supervisor else None,
+            "supervisor": employee.supervisor,
+            "supervisor_id": str(supervisor) if supervisor else None,
             "birth_date": employee.birth_date
         }
