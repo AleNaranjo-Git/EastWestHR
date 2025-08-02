@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QHeaderView, QTableWidgetItem, QLineEdit, QScrollArea, QFrame, QGridLayout, QDateEdit, QComboBox, QSizePolicy,
-    QFileDialog, QMessageBox
+    QFileDialog
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIcon
@@ -17,6 +17,7 @@ from logic.document_generation import generate_salary_certificate, generate_fcl
 from models.employee_model import Employee
 from typing import List, Dict
 from datetime import date
+from utils.dialog_utils import  show_warning_dialog, show_information_dialog, show_critical_dialog
 
 class DocumentRequestPage(QWidget):
     def __init__(self):
@@ -69,7 +70,7 @@ class DocumentRequestPage(QWidget):
         filter_layout.addLayout(filter_header)
 
         self.employee_filter = QLineEdit()
-        self.employee_filter.setPlaceholderText("Cédula o nombre")
+        self.employee_filter.setPlaceholderText("Identificación o nombre")
         self.employee_filter.setStyleSheet(INPUT_STYLE)
 
         self.document_generated_filter = QComboBox()
@@ -94,7 +95,7 @@ class DocumentRequestPage(QWidget):
         filter_grid.setColumnStretch(1, 1)
         filter_grid.setColumnStretch(3, 1)
 
-        filter_grid.addWidget(QLabel("Empleado:"), 0, 0)
+        filter_grid.addWidget(QLabel("Identificación o Nombre:"), 0, 0)
         filter_grid.addWidget(self.employee_filter, 0, 1)
         filter_grid.addWidget(QLabel("Estado documento:"), 0, 2)
         filter_grid.addWidget(self.document_generated_filter, 0, 3)
@@ -131,7 +132,7 @@ class DocumentRequestPage(QWidget):
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels([
-            "Nombre solicitante", "Cédula Empleado", "Tipo", "Fecha Máxima", "Estado documento"
+            "Nombre solicitante", "Identificación", "Tipo", "Fecha Máxima", "Estado documento"
         ])
         header = self.table.horizontalHeader()
         for i in range(self.table.columnCount()):
@@ -174,7 +175,7 @@ class DocumentRequestPage(QWidget):
             return value
 
         self.name_label = create_label_pair("Nombre solicitante:", 1, 0)
-        self.national_id_label = create_label_pair("Cédula Empleado:", 2, 0)
+        self.national_id_label = create_label_pair("Identificación:", 2, 0)
         self.type_label = create_label_pair("Tipo:", 3, 0)
         self.requested_on_label = create_label_pair("Solicitada el:", 4, 0)
         self.document_generated_label = create_label_pair("Estado documento:", 5, 0)
@@ -207,6 +208,13 @@ class DocumentRequestPage(QWidget):
 
     def load_requests(self):
         self.unified_requests = UnifiedDocumentRequest.get_all_document_requests()
+        
+        # Sort the filtered results by document generation status
+        self.unified_requests.sort(key=lambda req: {
+            "Documento no generado": 1,
+            "Documento generado": 2
+        }.get(req["document_generated"], 3))
+        
         self.populate_table(self.unified_requests)
 
     def populate_table(self, requests: List[Dict[str, str]]) -> None:
@@ -221,6 +229,9 @@ class DocumentRequestPage(QWidget):
             self.table.setItem(row, 4, QLabelItem(str(req["document_generated"])))
 
     def apply_filters(self):
+        """
+        Applies filters to the requests and sorts the filtered results by document generation status.
+        """
         filtered = self.unified_requests
         emp_filter = self.employee_filter.text().strip()
         type_filter = self.type_filter.currentText()
@@ -228,6 +239,7 @@ class DocumentRequestPage(QWidget):
         start_date_filter = self.start_date_filter.date().toPython()
         end_date_filter = self.end_date_filter.date().toPython()
 
+        # Apply filters
         if emp_filter:
             filtered = [r for r in filtered if emp_filter in r["employee_name"] or emp_filter in r["employee_national_id"]]
         if doc_generated_filter != "Todos":
@@ -239,8 +251,16 @@ class DocumentRequestPage(QWidget):
         if end_date_filter != date(2100, 12, 31):
             filtered = [r for r in filtered if r["request_date"] <= str(end_date_filter)]
 
+        # Sort the filtered results by document generation status
+        filtered.sort(key=lambda req: {
+            "Documento no generado": 1,
+            "Documento generado": 2
+        }.get(req["document_generated"], 3))
+
+        # Populate the table with the sorted and filtered results
         self.populate_table(filtered)
-        
+
+        # Hide the filter panel after applying filters
         self.filter_frame.hide()
         self.filter_button.setText(" Filtrar tabla")
         self.repaint()
@@ -306,7 +326,7 @@ class DocumentRequestPage(QWidget):
     def handle_generate_salary_certificate(self):
         selected_row = self.table.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "Error", "Seleccione una solicitud para generar el documento.")
+            show_warning_dialog(self, "Error", "Seleccione una solicitud para generar el documento.")
             return
 
         selected_request = self.unified_requests[selected_row]
@@ -319,7 +339,7 @@ class DocumentRequestPage(QWidget):
         )
 
         if not save_path:
-            QMessageBox.warning(self, "Cancelado", "No se seleccionó un archivo para guardar.")
+            show_warning_dialog(self, "Cancelado", "No se seleccionó un archivo para guardar.")
             return
 
         template_path = "templates/salary_certificate_template.docx"
@@ -328,24 +348,24 @@ class DocumentRequestPage(QWidget):
 
         # Generate the document
         success = generate_salary_certificate(save_path, template_path, {
-            "fecha": date.today().strftime("%Y-%m-%d"),
+            "fecha": format_date_spanish(date.today()),
             "nombre": selected_request["employee_name"],
             "numeroCedula": selected_request["employee_national_id"],
-            "fechaIngreso": employee.hire_date.strftime("%Y-%m-%d") if employee else "Desconocido",
+            "fechaIngreso": format_date_spanish(employee.hire_date) if employee else "Desconocido",
             "puesto": employee.position if employee else "Desconocido"
         })
 
         if success:
-            QMessageBox.information(self, "Éxito", f"El documento se generó correctamente en:\n{save_path}")
+            show_information_dialog(self, "Éxito", f"El documento se generó correctamente en:\n{save_path}")
             SalaryCertificate.update_certificate_by_id(selected_request["certificate_id"])
             self.load_requests()
         else:
-            QMessageBox.critical(self, "Error", "No se pudo generar el documento.")
+            show_critical_dialog(self, "Error", "No se pudo generar el documento.")
 
     def handle_generate_fcl(self):
         selected_row = self.table.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "Error", "Seleccione una solicitud para generar el documento.")
+            show_warning_dialog(self, "Error", "Seleccione una solicitud para generar el documento.")
             return
 
         selected_request = self.unified_requests[selected_row]
@@ -358,7 +378,7 @@ class DocumentRequestPage(QWidget):
         )
 
         if not save_path:
-            QMessageBox.warning(self, "Cancelado", "No se seleccionó un archivo para guardar.")
+            show_warning_dialog(self, "Cancelado", "No se seleccionó un archivo para guardar.")
             return
 
         template_path = "templates/fcl_template.docx"
@@ -367,23 +387,37 @@ class DocumentRequestPage(QWidget):
 
         # Generate the document
         success = generate_fcl(save_path, template_path, {
-            "fecha": date.today().strftime("%Y-%m-%d"),
+            "fecha": format_date_spanish(date.today()),
             "nombre": selected_request["employee_name"],
             "numeroCedula": selected_request["employee_national_id"],
             "puesto": employee.position if employee else "Desconocido",
-            "fechaIngreso": employee.hire_date.strftime("%Y-%m-%d") if employee else "Desconocido",
+            "fechaIngreso": format_date_spanish(employee.hire_date) if employee else "Desconocido",
             "primerApellido": employee.last_name_1 if employee else "Desconocido"
         })
 
         if success:
-            QMessageBox.information(self, "Éxito", f"El documento FCL se generó correctamente en:\n{save_path}")
+            show_information_dialog(self, "Éxito", f"El documento FCL se generó correctamente en:\n{save_path}")
             FCL.update_fcl_by_id(selected_request["fcl_id"])
             self.load_requests()
         else:
-            QMessageBox.critical(self, "Error", "No se pudo generar el documento FCL.")
+            show_critical_dialog(self, "Error", "No se pudo generar el documento FCL.")
 
 # Helper for QTableWidgetItem with alignment
 def QLabelItem(text: str) -> QTableWidgetItem:
     item = QTableWidgetItem(text)
     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
     return item
+
+def format_date_spanish(date_obj: date) -> str:
+    """
+    Formats a date object into the format: '2 de Agosto del 2025'.
+    """
+    months_spanish = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+        5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+        9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
+    day = date_obj.day
+    month = months_spanish[date_obj.month]
+    year = date_obj.year
+    return f"{day} de {month} del {year}"

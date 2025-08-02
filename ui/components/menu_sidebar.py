@@ -37,6 +37,7 @@ class MenuSidebar(QWidget):
             ("Pendiente Aprobar", "Pendiente Aprobar"),
             ("Generar Documento", "Generar Documento"),
             ("Generar Reporte", "Generar Reporte"),
+            ("Gestión de Usuarios", "Gestión de Usuarios")
         ]
 
         for key, label in names:

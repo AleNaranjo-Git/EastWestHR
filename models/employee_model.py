@@ -60,7 +60,7 @@ class Employee:
                     hire_date=row[6],
                     supervisor=row[7],
                     email=row[8].strip(),
-                    birth_date=None
+                    birth_date=row[9] if row[9] else None
                 )
             logging.warning(f"No employee found with national_id: {national_id[:8].strip()}...")
             return None
@@ -153,7 +153,7 @@ class Employee:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT email FROM VistaEmpleados2 WHERE cedula = ?",
+                "SELECT correo FROM VistaEmpleados2 WHERE cedula = ?",
                 (national_id,)
             )
             row = cursor.fetchone()
@@ -183,7 +183,7 @@ class Employee:
             cursor = conn.cursor()
             # Use the IN clause to fetch emails for multiple departments
             placeholders = ", ".join("?" for _ in departments)
-            query = f"SELECT email FROM VistaEmpleados2 WHERE departamento IN ({placeholders})"
+            query = f"SELECT correo FROM VistaEmpleados2 WHERE departamento IN ({placeholders})"
             cursor.execute(query, departments)
             rows = cursor.fetchall()
             cursor.close()

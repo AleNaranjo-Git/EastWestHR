@@ -36,16 +36,50 @@ hiddenimports = [
     'xlsxwriter',
     'holidays',
     
-    # Módulos de tu aplicación
     'db.connection',
+
+    # Módulos de lógica (logic)
+    'logic.auth',
+    'logic.date_logic',
     'logic.document_generation',
-    'logic.vacations_logic',
+    'logic.email_service',
+    'logic.employee_logic',
     'logic.permits_logic',
+    'logic.unified_document_request',
+    'logic.unified_requests',
+    'logic.user_management',
+    'logic.vacations_logic',
+    
+    # Modelos (models)
+    'models.birthday_policy_model',
     'models.employee_model',
+    'models.experience_years_policy_model',
+    'models.fcl_model',
+    'models.permit_request_model',
+    'models.permit_type_model',
+    'models.role_model',
+    'models.salary_certificate_model',
+    'models.target_group_model',
+    'models.vacation_request_model',
+    
+    # Interfaz de usuario (ui)
+    'ui.components.menu_sidebar',
+    'ui.pages.document_request_page',
+    'ui.pages.fcl_page',
+    'ui.pages.pending_request_page',
+    'ui.pages.permits_page',
+    'ui.pages.report_generation_page',
+    'ui.pages.salary_certificate_page',
+    'ui.pages.user_management_page',
+    'ui.pages.vacations_page',
+    'ui.windows.login_window',
     'ui.windows.main_window',
-    'ui.pages',
-    'ui.components',
+    
+    # Utilidades (utils)
+    'utils.date_utils',
+    'utils.dialog_utils',
     'utils.logging_config',
+    'utils.resource_path',
 ]
 
 a = Analysis(

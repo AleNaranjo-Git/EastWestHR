@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
-    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout
+    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout,
+    QMessageBox
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIcon
@@ -8,15 +9,19 @@ from resources.styles.colors import TEXT_COLOR, BACKGROUND
 from resources.styles.components import (
     BUTTON_STYLE, TITLE_STYLE, LABEL_STYLE, INPUT_STYLE, COMBOBOX_STYLE,
     FILTER_BUTTON_STYLE, CARD_STYLE, INFO_CARD_STYLE, 
-    FILTER_TITLE_STYLE, CLEAR_FILTERS_STYLE, REJECT_BUTTON_STYLE
+    FILTER_TITLE_STYLE, CLEAR_FILTERS_STYLE, REJECT_BUTTON_STYLE, MESSAGE_BOX_STYLE
 )
 from logic.auth import get_current_user_national_id
 from logic.unified_requests import get_unified_requests_by_supervisor, UnifiedRequest
+from logic.email_service import send_email, fetch_recipients
 from models.permit_request_model import PermitRequest
 from models.permit_type_model import PermitType
 from models.vacation_request_model import VacationRequest
+from models.employee_model import Employee
 from typing import List, Optional
 from datetime import date
+from utils.dialog_utils import show_warning_dialog, show_information_dialog
+import logging
 
 class PendingRequestPage(QWidget):
     def __init__(self):
@@ -69,7 +74,7 @@ class PendingRequestPage(QWidget):
         filter_layout.addLayout(filter_header)
 
         self.employee_filter = QLineEdit()
-        self.employee_filter.setPlaceholderText("Cédula o nombre")
+        self.employee_filter.setPlaceholderText("Identificación o Nombre")
         self.employee_filter.setStyleSheet(INPUT_STYLE)
 
         self.status_filter = QComboBox()
@@ -139,7 +144,7 @@ class PendingRequestPage(QWidget):
 
         self.table = QTableWidget(0, 11)
         self.table.setHorizontalHeaderLabels([ # type: ignore
-            "Nombre solicitante", "Cédula Empleado", "Tipo", "Tipo de permiso", "Solicitada el", "Fecha inicio", "Fecha final",
+            "Nombre solicitante", "Identificación", "Tipo", "Tipo de permiso", "Solicitada el", "Fecha inicio", "Fecha final",
             "Hora entrada", "Hora salida", "Cantidad de días", "Estado"
         ])
         header = self.table.horizontalHeader()
@@ -189,7 +194,7 @@ class PendingRequestPage(QWidget):
         self.entry_time_label = create_label_pair("Hora entrada:", 5, 0)
         self.days_label = create_label_pair("Cantidad de días:", 6, 0)
 
-        self.national_id_label = create_label_pair("Cédula Empleado:", 1, 1)
+        self.national_id_label = create_label_pair("Identificación:", 1, 1)
         self.type_name_label = create_label_pair("Tipo de permiso:", 2, 1)
         self.status_label = create_label_pair("Estado:", 3, 1)
         self.end_date_label = create_label_pair("Fecha final:", 4, 1)
@@ -224,9 +229,22 @@ class PendingRequestPage(QWidget):
         self.reject_button.clicked.connect(self.deny_selected)
 
     def load_requests(self):
+        """
+        Loads all requests for the current supervisor and sorts them by status.
+        """
         supervisor_id = get_current_user_national_id()
         if supervisor_id:
+            # Fetch all unified requests for the supervisor
             self.unified_requests = get_unified_requests_by_supervisor(supervisor_id)
+
+            # Sort the requests by status: Pendiente -> Aprobado -> Denegado
+            self.unified_requests.sort(key=lambda req: {
+                "Pendiente": 1,
+                "Aprobado": 2,
+                "Denegado": 3
+            }.get(req.status, 4))
+
+            # Populate the table with the sorted requests
             self.populate_table(self.unified_requests)
 
     def populate_table(self, requests: List["UnifiedRequest"]) -> None:
@@ -254,6 +272,9 @@ class PendingRequestPage(QWidget):
         return self.displayed_requests[selected_row]
 
     def apply_filters(self):
+        """
+        Applies filters to the requests and sorts the filtered results by status.
+        """
         filtered = self.unified_requests
         emp_filter = self.employee_filter.text().strip()
         status_filter = self.status_filter.currentText()
@@ -270,16 +291,23 @@ class PendingRequestPage(QWidget):
             filtered = [r for r in filtered if r.type_.lower() == type_filter.lower()]
         if permit_type_filter != "Todos":
             filtered = [r for r in filtered if r.permit_type_name.lower() == permit_type_filter.lower()]
-        # Only filter if user changed from default
         if start_date_filter != date(2000, 1, 1):
-            filtered = [r for r in filtered if r.start_date >= start_date_filter] # type: ignore
+            filtered = [r for r in filtered if r.start_date >= start_date_filter]  # type: ignore
         if end_date_filter != date(2100, 12, 31):
-            filtered = [r for r in filtered if r.end_date <= end_date_filter] # type: ignore
+            filtered = [r for r in filtered if r.end_date <= end_date_filter]  # type: ignore
 
+        # Sort the filtered results by status
+        filtered.sort(key=lambda req: {
+            "Pendiente": 1,
+            "Aprobado": 2,
+            "Denegado": 3
+        }.get(req.status, 4))
+
+        # Populate the table with the sorted and filtered results
         self.populate_table(filtered)
-    
-        # Hide the filter panel after applying filters (with forced update)
-        self.filter_frame.hide()  # Use hide() instead of setVisible(False)
+
+        # Hide the filter panel after applying filters
+        self.filter_frame.hide()
         self.filter_button.setText(" Filtrar tabla")
         self.repaint()  # Force UI update
 
@@ -343,19 +371,56 @@ class PendingRequestPage(QWidget):
     def approve_selected(self):
         req = self.get_selected_unified_request()
         if req:
+            # Show confirmation dialog before proceeding
+            confirmation = QMessageBox(self)
+            confirmation.setWindowTitle("Confirmar solicitud")
+            confirmation.setText("¿Está seguro/a que desea aprobar la solicitud?")
+            confirmation.setStyleSheet(MESSAGE_BOX_STYLE)
+
+            yes_button = confirmation.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+            confirmation.addButton("No", QMessageBox.ButtonRole.NoRole)
+            confirmation.setDefaultButton(yes_button)
+
+            confirmation.exec()
+            if confirmation.clickedButton() != yes_button:
+                return
+            
+            # Proceed with approval
             if req.type_ == "Permiso":
                 PermitRequest.update_status(req.request_id, "Aprobado")
             elif req.type_ == "Vacacion":
                 VacationRequest.update_status(req.request_id, "Aprobado")
+                
+            # Notify the user via email
+            self.notify_request(req, "Aprobación", "aprobada")
+            
             self.load_requests()  # Refresh table
 
     def deny_selected(self):
         req = self.get_selected_unified_request()
         if req:
+           # Show confirmation dialog before proceeding
+            confirmation = QMessageBox(self)
+            confirmation.setWindowTitle("Confirmar solicitud")
+            confirmation.setText("¿Está seguro/a que desea aprobar la solicitud?")
+            confirmation.setStyleSheet(MESSAGE_BOX_STYLE)
+
+            yes_button = confirmation.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+            confirmation.addButton("No", QMessageBox.ButtonRole.NoRole)
+            confirmation.setDefaultButton(yes_button)
+
+            confirmation.exec()
+            if confirmation.clickedButton() != yes_button:
+                return
+            # Proceed with denial
             if req.type_ == "Permiso":
                 PermitRequest.update_status(req.request_id, "Denegado")
             elif req.type_ == "Vacacion":
                 VacationRequest.update_status(req.request_id, "Denegado")
+                
+            # Notify the user via email
+            self.notify_request(req, "Denegación", "denegada")
+                
             self.load_requests()  # Refresh table
     
     def toggle_filter_panel(self):
@@ -364,6 +429,56 @@ class PendingRequestPage(QWidget):
             self.filter_button.setText(" Ocultar filtros")
         else:
             self.filter_button.setText(" Filtrar tabla")
+            
+    def notify_request(self, req: "UnifiedRequest", action: str, solStatus: str) -> None:
+        """
+        Notify relevant departments and the supervisor about a vacation request.
+        """
+        # Define the departments to notify
+        departments = ["TestEmail", "AnotherDepartment"]
+
+        # Fetch employee information
+        employee_info = Employee.get_employee_by_national_id(req.employee_national_id)
+        if not employee_info:
+            show_warning_dialog(self, "Error", f"No se encontró información del colaborador con cédula: {req.employee_national_id}.")
+            logging.warning(f"No employee found with National ID: {req.employee_national_id}.")
+            return
+
+        # Fetch supervisor's national ID if a supervisor exists
+        supervisor_id = None
+        if employee_info.supervisor:
+            supervisor_id = Employee.get_national_id_by_full_name(employee_info.supervisor)
+            if not supervisor_id:
+                show_warning_dialog(self, "Error", f"No se encontró la cédula del supervisor: {employee_info.supervisor}.")
+                logging.warning(f"No national ID found for supervisor: {employee_info.supervisor}.")
+
+        # Fetch recipients
+        recipients = fetch_recipients(req.employee_national_id, supervisor_id, departments) #type: ignore
+        if not recipients:
+            show_warning_dialog(self, "Error", "No se encontraron destinatarios para el correo.")
+            logging.warning("No recipients found for the email.")
+            return
+
+        # Email details
+        subject = f"{action} de Solicitud de {req.type_}"
+        body = (
+            f"Estimado/a {employee_info.first_name} {employee_info.last_name_1},\n\n"
+            f"Por la presente, se le informa que su solicitud de {req.type_} ha sido {solStatus}. A continuación, se detallan los datos de su solicitud:\n\n"
+            f"- Nombre del Colaborador: {employee_info.first_name} {employee_info.last_name_1}\n"
+            f"- Identificación: {employee_info.national_id}\n"
+            f"- Fecha de Inicio: {req.start_date.strftime('%d/%m/%Y')}\n"
+            f"- Fecha de Finalización: {req.end_date.strftime('%d/%m/%Y')}\n"
+            f"- Cantidad de Días: {req.total_days}\n\n"
+        )
+
+        # Send the email
+        if send_email(subject, body, recipients):
+            show_information_dialog(self, "Éxito", f"El correo de notificación de {action.lower()} se envió correctamente.")
+            logging.info(f"Email sent successfully for {action.lower()} request by employee with National ID: {req.employee_national_id}.")
+        else:
+            show_warning_dialog(self, "Error", f"No se pudo enviar el correo de notificación de {action.lower()}.")
+            logging.error(f"Failed to send email for {action.lower()} request by employee with National ID: {req.employee_national_id}.")
+
 
     # Helper for QTableWidgetItem with alignment
 def QLabelItem(text: str) -> QTableWidgetItem:

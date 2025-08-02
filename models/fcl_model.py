@@ -26,7 +26,7 @@ class FCL:
                 return cls(
                     fcl_id=row[0],
                     request_date=row[1],
-                    employee_national_id=row[2],
+                    employee_national_id=row[2].strip(),
                     document_generated=bool(row[3])
                 )
             logging.warning(f"No FCL record found with id: {fcl_id}")
@@ -54,7 +54,7 @@ class FCL:
                 fcl_records.append(cls(
                     fcl_id=row[0],
                     request_date=row[1],
-                    employee_national_id=row[2],
+                    employee_national_id=row[2].strip(),
                     document_generated=bool(row[3])
                 ))
             logging.info(f"Retrieved {len(fcl_records)} FCL records.")

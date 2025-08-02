@@ -26,7 +26,7 @@ class SalaryCertificate:
                 return cls(
                     certificate_id=row[0],
                     request_date=row[1],
-                    employee_national_id=row[2],
+                    employee_national_id=row[2].strip(),
                     document_generated=bool(row[3])
                 )
             logging.warning(f"No salary certificate found with id: {certificate_id}")
@@ -54,7 +54,7 @@ class SalaryCertificate:
                 certificates.append(cls(
                     certificate_id=row[0],
                     request_date=row[1],
-                    employee_national_id=row[2],
+                    employee_national_id=row[2].strip(),
                     document_generated=bool(row[3])
                 ))
             logging.info(f"Retrieved {len(certificates)} salary certificates.")
