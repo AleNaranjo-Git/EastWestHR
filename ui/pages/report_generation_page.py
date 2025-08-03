@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
-    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout, QFileDialog, QMessageBox
+    QHeaderView, QSizePolicy, QComboBox, QLineEdit, QDateEdit, QScrollArea, QFrame, QTableWidgetItem, QGridLayout, QFileDialog
 )
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIcon
@@ -14,6 +14,7 @@ from logic.unified_requests import get_all_unified_requests_ordered, UnifiedRequ
 from typing import Dict, List
 from datetime import date
 from logic.document_generation import generate_excel_report
+from utils.dialog_utils import  show_warning_dialog, show_information_dialog
 
 class ReportGenerationPage(QWidget):
     def __init__(self):
@@ -66,7 +67,7 @@ class ReportGenerationPage(QWidget):
         filter_layout.addLayout(filter_header)
 
         self.employee_filter = QLineEdit()
-        self.employee_filter.setPlaceholderText("Cédula o nombre")
+        self.employee_filter.setPlaceholderText("Identificación o nombre")
         self.employee_filter.setStyleSheet(INPUT_STYLE)
 
         self.supervisor_filter = QLineEdit()
@@ -95,7 +96,7 @@ class ReportGenerationPage(QWidget):
         filter_grid.setColumnStretch(1, 1)
         filter_grid.setColumnStretch(3, 1)
 
-        filter_grid.addWidget(QLabel("Empleado:"), 0, 0)
+        filter_grid.addWidget(QLabel("Identificación o Nombre:"), 0, 0)
         filter_grid.addWidget(self.employee_filter, 0, 1)
         filter_grid.addWidget(QLabel("Supervisor:"), 0, 2)
         filter_grid.addWidget(self.supervisor_filter, 0, 3)
@@ -134,7 +135,7 @@ class ReportGenerationPage(QWidget):
 
         self.table = QTableWidget(0, 12)
         self.table.setHorizontalHeaderLabels([ # type: ignore
-            "Nombre solicitante", "Cédula Empleado", "Tipo", "Tipo de permiso", "Solicitada el", "Fecha inicio", "Fecha final",
+            "Nombre solicitante", "Identificación", "Tipo", "Tipo de permiso", "Solicitada el", "Fecha inicio", "Fecha final",
             "Hora entrada", "Hora salida", "Cantidad de días", "Estado", "Nombre del Supervisor"
         ])
         header = self.table.horizontalHeader()
@@ -268,9 +269,9 @@ class ReportGenerationPage(QWidget):
 
         # Generate the Excel report
         if generate_excel_report(output_path, data):
-            QMessageBox.information(self, "Éxito", f"Reporte de excel generado satisfactoriamente: {output_path}")
+            show_information_dialog(self, "Éxito", f"Reporte de excel generado satisfactoriamente: {output_path}")
         else:
-            QMessageBox.warning(self, "Error", "No se pudo generar el reporte de Excel.")
+            show_warning_dialog(self, "Error", "No se pudo generar el reporte de Excel.")
 
     def toggle_filter_panel(self):
         self.filter_frame.setVisible(not self.filter_frame.isVisible())

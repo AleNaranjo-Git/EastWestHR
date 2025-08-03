@@ -8,6 +8,7 @@ from ui.pages.fcl_page import FCLPage
 from ui.pages.pending_request_page import PendingRequestPage
 from ui.pages.document_request_page import DocumentRequestPage
 from ui.pages.report_generation_page import ReportGenerationPage
+from ui.pages.user_management_page import UserManagementPage
 from logic.auth import get_current_user_role, Session
 
 class MainWindow(QMainWindow):
@@ -74,5 +75,12 @@ class MainWindow(QMainWindow):
         else:
             self.menu.buttons["Generar Documento"].setVisible(False)
             self.menu.buttons["Generar Reporte"].setVisible(False)
+            
+        if user_role == 1:
+            self.user_management_page = UserManagementPage()
+            self.stack.addWidget(self.user_management_page)
+            self.menu.buttons["Gestión de Usuarios"].clicked.connect(lambda: self.stack.setCurrentWidget(self.user_management_page))
+        else:
+            self.menu.buttons["Gestión de Usuarios"].setVisible(False)
 
         self.showMaximized()

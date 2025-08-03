@@ -189,6 +189,7 @@ MESSAGE_BOX_STYLE = f"""
     QMessageBox {{
         background-color: {BACKGROUND};
         border-radius: 8px;
+        padding: 16px;
     }}
     QMessageBox QLabel {{
         font-size: 14pt;
@@ -198,11 +199,18 @@ MESSAGE_BOX_STYLE = f"""
         background-color: {PRIMARY_COLOR};
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 6px 12px;
+        border-radius: 5px;
+        padding: 8px 20px;
+        min-width: 30px;
         font-size: 12pt;
+        font-weight: normal;
+        text-align: center;
     }}
     QMessageBox QPushButton:hover {{
         background-color: {PRIMARY_HOVER};
+    }}
+    QMessageBox QPushButton:focus {{
+        outline: none;
+        border: 2px solid {SECONDARY_COLOR};
     }}
 """

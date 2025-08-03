@@ -132,7 +132,7 @@ class PermitsLogic:
             return False, "La fecha de nacimiento del empleado no es válida."
 
         # Ensure the selected date is in the birthday month
-        if birthday.month != selected_date.month:
+        if birthday.month != selected_date.month: #type: ignore
             return False, "Solo puedes solicitar el permiso de cumpleaños en el mes de tu cumpleaños."
         
         current_year = date.today().year
@@ -174,6 +174,14 @@ class PermitsLogic:
         Validates if the employee can request an experience years benefit on the selected date,
         according to all active experience years policies and business rules.
         """
+        
+        # Validate that the selected date is not in a future year
+        current_year = date.today().year
+        if selected_date.year > current_year:
+            logging.warning(f"Employee {employee_national_id.strip()} attempted to request an experience benefit for a future year: {selected_date.year}.")
+            return False, "No puedes solicitar el permiso de años de experiencia para un año futuro."
+
+
         employee = Employee.get_employee_by_national_id(employee_national_id)
         assert employee is not None, "Employee existence should be validated in validate_generic_permit"
 

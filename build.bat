@@ -12,7 +12,7 @@ echo.
 echo Creando ejecutable...
 echo Esto puede tomar varios minutos...
 
-REM Crear ejecutable
+REM Crear ejecutable usando main.spec
 pyinstaller main.spec --clean --noconfirm
 
 REM Verificar resultado
@@ -31,13 +31,15 @@ if exist "dist\EastWestApp.exe" (
     )
     
     echo.
-    echo Para probar: cd dist ^&^& EastWestApp.exe
+    echo Para probar: cd dist && EastWestApp.exe
 ) else (
     echo.
     echo ========================================
     echo   BUILD FALLO!
     echo ========================================
     echo Revisa los errores arriba
+    echo Contenido del directorio dist:
+    dir dist
 )
 
 echo.
