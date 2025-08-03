@@ -10,7 +10,7 @@ class Role:
     @classmethod
     def get_role_by_id(cls, role_id: int):
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -31,13 +31,13 @@ class Role:
             logging.error(f"Error searching for role by id: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def get_role_id_by_name(cls, role_name: str) -> Optional[int]:
         """Fetch the role ID by its name."""
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -55,4 +55,4 @@ class Role:
             logging.error(f"Error fetching role ID by name: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")

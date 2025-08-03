@@ -13,7 +13,7 @@ class SalaryCertificate:
     @classmethod
     def get_certificate_by_id(cls, certificate_id: int) -> Optional["SalaryCertificate"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -35,12 +35,12 @@ class SalaryCertificate:
             logging.error(f"Error retrieving salary certificate by id: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def get_all_certificates(cls) -> List["SalaryCertificate"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         certificates: List["SalaryCertificate"] = []
         if conn is None:
             logging.error("No database connection available.")
@@ -63,12 +63,12 @@ class SalaryCertificate:
             logging.error(f"Error retrieving all salary certificates: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def create_certificate(cls, request_date: date, employee_national_id: str, document_generated: bool) -> Optional[int]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return False
@@ -85,7 +85,7 @@ class SalaryCertificate:
             logging.error(f"Error creating salary certificate request: {e}")
             return False
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def update_certificate_by_id(cls, certificate_id: str) -> bool:
@@ -96,7 +96,7 @@ class SalaryCertificate:
         :return: True if the update was successful, False otherwise.
         """
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return False
@@ -113,4 +113,4 @@ class SalaryCertificate:
             logging.error(f"Error updating documentoGenerado for certificate ID {certificate_id}: {e}")
             return False
         finally:
-            conn.close()
+            db.close_connection("main")

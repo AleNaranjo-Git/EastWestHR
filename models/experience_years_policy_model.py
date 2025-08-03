@@ -41,7 +41,7 @@ class ExperienceYearsPolicy:
         approval_role_id: int
     ) -> Optional["ExperienceYearsPolicy"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return None
@@ -94,12 +94,12 @@ class ExperienceYearsPolicy:
             logging.error(f"Error creating experience years policy: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def get_all_active_experience_years_policies() -> List["ExperienceYearsPolicy"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         policies: List[ExperienceYearsPolicy] = []
         if conn is None:
             logging.error("Could not connect to the database.")
@@ -131,4 +131,4 @@ class ExperienceYearsPolicy:
             logging.error(f"Error retrieving active experience years policies: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")
