@@ -105,7 +105,7 @@ class PendingRequestPage(QWidget):
         filter_grid.setColumnStretch(1, 1)
         filter_grid.setColumnStretch(3, 1)
 
-        filter_grid.addWidget(QLabel("Empleado:"), 0, 0)
+        filter_grid.addWidget(QLabel("Colaborador:"), 0, 0)
         filter_grid.addWidget(self.employee_filter, 0, 1)
         filter_grid.addWidget(QLabel("Estado:"), 0, 2)
         filter_grid.addWidget(self.status_filter, 0, 3)
@@ -402,7 +402,7 @@ class PendingRequestPage(QWidget):
            # Show confirmation dialog before proceeding
             confirmation = QMessageBox(self)
             confirmation.setWindowTitle("Confirmar solicitud")
-            confirmation.setText("¿Está seguro/a que desea aprobar la solicitud?")
+            confirmation.setText("¿Está seguro/a que desea denegar la solicitud?")
             confirmation.setStyleSheet(MESSAGE_BOX_STYLE)
 
             yes_button = confirmation.addButton("Sí", QMessageBox.ButtonRole.YesRole)

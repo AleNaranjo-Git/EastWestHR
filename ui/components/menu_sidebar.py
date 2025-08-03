@@ -121,26 +121,28 @@ class MenuSidebar(QWidget):
 
     def _show_login_confirmation(self):
         confirmation = QMessageBox(self)
-        confirmation.setWindowTitle("Confirmación")
-        confirmation.setText("<b>¿Desea iniciar sesión?</b>")
+        confirmation.setWindowTitle("Confirmar")
+        confirmation.setText("¿Desea iniciar sesión?")
         confirmation.setIcon(QMessageBox.Icon.Question)
         confirmation.setStyleSheet(MESSAGE_BOX_STYLE)
-        confirmation.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        confirmation.setDefaultButton(QMessageBox.StandardButton.Yes)
+        yes_button = confirmation.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+        confirmation.addButton("No", QMessageBox.ButtonRole.NoRole)
+        confirmation.setDefaultButton(yes_button)
 
-        result = confirmation.exec()
-        if result == QMessageBox.StandardButton.Yes:
+        confirmation.exec()
+        if confirmation.clickedButton() == yes_button:
             self._open_login_window()
 
     def _show_logout_confirmation(self):
         confirmation = QMessageBox(self)
-        confirmation.setWindowTitle("Confirmación")
-        confirmation.setText("<b>¿Desea cerrar sesión?</b>")
+        confirmation.setWindowTitle("Confirmar")
+        confirmation.setText("¿Desea cerrar sesión?")
         confirmation.setIcon(QMessageBox.Icon.Warning)
         confirmation.setStyleSheet(MESSAGE_BOX_STYLE)
-        confirmation.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        confirmation.setDefaultButton(QMessageBox.StandardButton.Yes)
+        yes_button = confirmation.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+        confirmation.addButton("No", QMessageBox.ButtonRole.NoRole)
+        confirmation.setDefaultButton(yes_button)
 
-        result = confirmation.exec()
-        if result == QMessageBox.StandardButton.Yes:
+        confirmation.exec()
+        if confirmation.clickedButton() == yes_button:
             self._logout_and_reopen_main_window()

@@ -46,7 +46,7 @@ class UserManagementPage(QWidget):
         form_layout.setSpacing(12)
 
         self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("Correo electrónico")
+        self.email_input.setPlaceholderText("Usuario")
         self.email_input.setStyleSheet(INPUT_STYLE)
 
         self.password_input = QLineEdit()
@@ -61,7 +61,7 @@ class UserManagementPage(QWidget):
         self.role_combo = QComboBox()
         self.role_combo.setStyleSheet(INPUT_STYLE)
 
-        form_layout.addRow("Correo:", self.email_input)
+        form_layout.addRow("Usuario:", self.email_input)
         form_layout.addRow("Contraseña:", self.password_input)
         form_layout.addRow("Identificación:", self.national_id_input)
         form_layout.addRow("Rol:", self.role_combo)
@@ -102,7 +102,7 @@ class UserManagementPage(QWidget):
         table_layout.setContentsMargins(16, 16, 16, 16)
 
         self.table = QTableWidget(0, 3)
-        self.table.setHorizontalHeaderLabels(["Correo", "Cédula", "Rol"])
+        self.table.setHorizontalHeaderLabels(["Usuario", "Cédula", "Rol"])
         header = self.table.horizontalHeader()
         for i in range(self.table.columnCount()):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
