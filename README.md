@@ -10,7 +10,7 @@ East West App es una aplicación para gestionar solicitudes, documentos y permis
 - Python 3.12+
 - Dependencias en `requirements.txt`
 
----
+--- 
 
 ## Instalación
 
