@@ -95,7 +95,7 @@ class DocumentRequestPage(QWidget):
         filter_grid.setColumnStretch(1, 1)
         filter_grid.setColumnStretch(3, 1)
 
-        filter_grid.addWidget(QLabel("Identificación o Nombre:"), 0, 0)
+        filter_grid.addWidget(QLabel("Colaborador:"), 0, 0)
         filter_grid.addWidget(self.employee_filter, 0, 1)
         filter_grid.addWidget(QLabel("Estado documento:"), 0, 2)
         filter_grid.addWidget(self.document_generated_filter, 0, 3)
@@ -177,7 +177,7 @@ class DocumentRequestPage(QWidget):
         self.name_label = create_label_pair("Nombre solicitante:", 1, 0)
         self.national_id_label = create_label_pair("Identificación:", 2, 0)
         self.type_label = create_label_pair("Tipo:", 3, 0)
-        self.requested_on_label = create_label_pair("Solicitada el:", 4, 0)
+        self.requested_on_label = create_label_pair("Fecha límite de entrega:", 4, 0)
         self.document_generated_label = create_label_pair("Estado documento:", 5, 0)
 
         main_layout.addWidget(info_card)

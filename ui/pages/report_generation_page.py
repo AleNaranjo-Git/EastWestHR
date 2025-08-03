@@ -96,7 +96,7 @@ class ReportGenerationPage(QWidget):
         filter_grid.setColumnStretch(1, 1)
         filter_grid.setColumnStretch(3, 1)
 
-        filter_grid.addWidget(QLabel("Identificación o Nombre:"), 0, 0)
+        filter_grid.addWidget(QLabel("Colaborador:"), 0, 0)
         filter_grid.addWidget(self.employee_filter, 0, 1)
         filter_grid.addWidget(QLabel("Supervisor:"), 0, 2)
         filter_grid.addWidget(self.supervisor_filter, 0, 3)
