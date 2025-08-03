@@ -13,7 +13,7 @@ class PermitType:
     @classmethod
     def get_permit_type_by_id(cls, permit_type_id: int):
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -35,12 +35,12 @@ class PermitType:
             logging.error(f"Error searching for permit type by id: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def get_all_active_permits(cls: Type[permit_type_t]) -> List[permit_type_t]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         permit_types: List[permit_type_t] = []
         if conn is None:
             logging.error("No database connection available.")
@@ -62,12 +62,12 @@ class PermitType:
             logging.error(f"Error retrieving active permit types: {e}")
             return []
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @classmethod
     def get_id_by_name(cls, permit_type_name: str) -> Optional[int]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -84,4 +84,4 @@ class PermitType:
             logging.error(f"Error retrieving permit type ID by name: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")

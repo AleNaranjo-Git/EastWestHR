@@ -119,7 +119,7 @@ class UserManagementPage(QWidget):
     def load_roles(self) -> None:
         self.role_combo.clear()
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn:
             try:
                 cursor = conn.cursor()
@@ -129,7 +129,7 @@ class UserManagementPage(QWidget):
             except Exception as e:
                 show_critical_dialog(self, "Error", f"Error loading roles: {e}")
             finally:
-                conn.close()
+                db.close_connection("main")
 
     def load_users(self) -> None:
         """Load users into the table and center the content."""

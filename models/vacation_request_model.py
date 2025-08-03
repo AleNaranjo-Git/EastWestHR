@@ -39,7 +39,7 @@ class VacationRequest:
         approver_national_id: Optional[str] = None
     ) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return False
@@ -67,12 +67,12 @@ class VacationRequest:
             logging.error(f"Error saving vacation: {e}")
             return False
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def get_vacation_by_id(vacation_request_id: int) -> Optional['VacationRequest']:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return None
@@ -98,12 +98,12 @@ class VacationRequest:
             logging.error(f"Error getting vacation: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def get_vacations_by_employee_national_id(employee_national_id: str) -> List['VacationRequest']:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return []
@@ -130,7 +130,7 @@ class VacationRequest:
             logging.error(f"Error getting vacations by employee: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def update_vacation(
@@ -145,7 +145,7 @@ class VacationRequest:
         approver_national_id: Optional[str] = None
     ) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return False
@@ -174,12 +174,12 @@ class VacationRequest:
             logging.error(f"Error updating vacation: {e}")
             return False
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def delete_vacation(vacation_request_id: int) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return False
@@ -193,12 +193,12 @@ class VacationRequest:
             logging.error(f"Error deleting vacation: {e}")
             return False
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def get_vacations_by_supervisor_id(supervisor_national_id: str) -> List["VacationRequest"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         vacations: List[VacationRequest] = []
         if conn is None:
             logging.error("Could not connect to the database.")
@@ -229,12 +229,12 @@ class VacationRequest:
             logging.error(f"Error retrieving vacations by supervisor_id: {e}")
             return []
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def update_status(vacation_request_id: int, new_status: str) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             return False
         try:
@@ -250,12 +250,12 @@ class VacationRequest:
             print(f"Error updating vacation status: {e}")
             return False
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def get_all_vacation_requests_ordered() -> List['VacationRequest']:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return []
@@ -291,4 +291,4 @@ class VacationRequest:
             logging.error(f"Error retrieving all vacation requests: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")

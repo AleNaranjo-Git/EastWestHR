@@ -13,7 +13,7 @@ class FCL:
     @classmethod
     def get_fcl_by_id(cls, fcl_id: int) -> Optional["FCL"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -35,12 +35,12 @@ class FCL:
             logging.error(f"Error retrieving FCL record by id: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @classmethod
     def get_all_fcl(cls) -> List["FCL"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         fcl_records: List["FCL"] = []
         if conn is None:
             logging.error("No database connection available.")
@@ -63,12 +63,12 @@ class FCL:
             logging.error(f"Error retrieving all FCL records: {e}")
             return []
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @classmethod
     def create_fcl(cls, request_date: date, employee_national_id: str, document_generated: bool) -> Optional[int]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return False
@@ -85,8 +85,8 @@ class FCL:
             logging.error(f"Error creating FCL request: {e}")
             return False
         finally:
-            conn.close()
-    
+            db.close_connection("main")
+
     @classmethod
     def update_fcl_by_id(cls, fcl_id: str) -> bool:
         """
@@ -96,7 +96,7 @@ class FCL:
         :return: True if the update was successful, False otherwise.
         """
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("No database connection available.")
             return False
@@ -113,4 +113,4 @@ class FCL:
             logging.error(f"Error updating documentoGenerado for FCL ID {fcl_id}: {e}")
             return False
         finally:
-            conn.close()
+            db.close_connection("main")
