@@ -10,35 +10,29 @@ templates_path = project_root / "templates"
 
 # Datos a incluir en el ejecutable
 datas = [
-    # Incluir carpeta de recursos (iconos, estilos)
     (str(resources_path), 'resources'),
-    # Incluir templates para generación de documentos
     (str(templates_path), 'templates'),
 ]
 
-# Incluir .env si existe (opcional)
+# Incluir .env si existe
 if os.path.exists('.env'):
     datas.append(('.env', '.'))
+else:
+    raise FileNotFoundError("Error: .env file is required for building the executable")
 
 # Imports específicos para tus dependencias
 hiddenimports = [
-    # PySide6 módulos
     'PySide6.QtCore',
     'PySide6.QtWidgets', 
     'PySide6.QtGui',
     'PySide6.QtPrintSupport',
-    
-    # Tus dependencias principales
     'dotenv',
     'pyodbc',
     'bcrypt',
     'docxtpl',
     'xlsxwriter',
     'holidays',
-    
     'db.connection',
-
-    # Módulos de lógica (logic)
     'logic.auth',
     'logic.date_logic',
     'logic.document_generation',
@@ -49,8 +43,6 @@ hiddenimports = [
     'logic.unified_requests',
     'logic.user_management',
     'logic.vacations_logic',
-    
-    # Modelos (models)
     'models.birthday_policy_model',
     'models.employee_model',
     'models.experience_years_policy_model',
@@ -61,8 +53,6 @@ hiddenimports = [
     'models.salary_certificate_model',
     'models.target_group_model',
     'models.vacation_request_model',
-    
-    # Interfaz de usuario (ui)
     'ui.components.menu_sidebar',
     'ui.pages.document_request_page',
     'ui.pages.fcl_page',
@@ -74,8 +64,6 @@ hiddenimports = [
     'ui.pages.vacations_page',
     'ui.windows.login_window',
     'ui.windows.main_window',
-    
-    # Utilidades (utils)
     'utils.date_utils',
     'utils.dialog_utils',
     'utils.logging_config',
@@ -92,7 +80,6 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Excluir librerías pesadas que no necesitas
         'matplotlib',
         'pandas',
         'selenium',
@@ -129,10 +116,10 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # False = aplicación GUI sin ventana de consola
+    console=False,
     disable_windowed_traceback=False,
     target_arch=None,
-    coinstaller=False,
+    codesign_identity=None,
     entitlements_file=None,
     icon=str(resources_path / 'icons' / 'EW_vertical_logo_800x561.ico') if (resources_path / 'icons' / 'EW_vertical_logo_800x561.ico').exists() else None,
 )
