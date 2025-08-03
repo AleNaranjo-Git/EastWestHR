@@ -31,7 +31,7 @@ class PermitRequest:
     @staticmethod
     def get_permit_by_id(permit_request_id: int) -> Optional["PermitRequest"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return None
@@ -64,12 +64,12 @@ class PermitRequest:
             logging.error(f"Error retrieving permit: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def get_permits_by_employee_national_id(employee_national_id: str) -> List["PermitRequest"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         permits: List[PermitRequest] = []
         if conn is None:
             logging.error("Could not connect to the database.")
@@ -101,7 +101,7 @@ class PermitRequest:
             logging.error(f"Error retrieving permits by employee_national_id: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def save_permit(
@@ -116,7 +116,7 @@ class PermitRequest:
         approver_national_id: Optional[str] = None
     ) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return False
@@ -145,12 +145,12 @@ class PermitRequest:
             logging.error(f"Error saving permit: {e}")
             return False
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def get_permits_by_supervisor_id(supervisor_national_id: str) -> List["PermitRequest"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         permits: List[PermitRequest] = []
         if conn is None:
             logging.error("Could not connect to the database.")
@@ -182,12 +182,12 @@ class PermitRequest:
             logging.error(f"Error retrieving permits by supervisor_id: {e}")
             return []
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def update_status(permit_request_id: int, new_status: str) -> bool:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             return False
         try:
@@ -203,12 +203,12 @@ class PermitRequest:
             print(f"Error updating permit status: {e}")
             return False
         finally:
-            conn.close()
-            
+            db.close_connection("main")
+
     @staticmethod
     def get_all_permit_requests_ordered() -> List['PermitRequest']:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return []
@@ -245,4 +245,4 @@ class PermitRequest:
             logging.error(f"Error retrieving all permit requests: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")

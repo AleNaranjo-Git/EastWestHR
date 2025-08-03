@@ -11,8 +11,9 @@ class Session:
 def authenticate(email: str, password: str) -> AuthResult:
     email = email.strip()
     db = DatabaseConnection()
-    conn = db.connect()
-    
+
+    conn = db.get_connection("main")
+
     if not conn:
         logging.error("Database connection error during authentication.")
         return "connection_error"
@@ -51,7 +52,7 @@ def authenticate(email: str, password: str) -> AuthResult:
         logging.error(f"Authentication error for user '{email}': {str(e)}")
         return "connection_error"
     finally:
-        db.close()
+        db.close_connection("main")
 
 def logout():
     Session.current_user = None

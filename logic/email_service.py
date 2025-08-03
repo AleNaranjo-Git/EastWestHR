@@ -2,12 +2,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List
-from dotenv import load_dotenv
-import os
 from models.employee_model import Employee
-
-# Load environment variables from .env
-load_dotenv()
+from models.email_credentials_model import EmailCredentials
+import logging
 
 def send_email(
     subject: str,
@@ -29,12 +26,15 @@ def send_email(
     Returns:
         bool: True if the email was sent successfully, False otherwise.
     """
-    sender_email = os.getenv("EMAIL_SENDER")
-    sender_password = os.getenv("EMAIL_PASSWORD")
+    # obtain the credentials from the database
+    credentials = EmailCredentials.get_credentials()
 
-    if not sender_email or not sender_password:
-        print("Error: Missing sender email or password in environment variables.")
+    if not credentials:
+        logging.error("Error: No se pudieron obtener las credenciales de correo.")
         return False
+
+    sender_email = credentials["usuario"]
+    sender_password = credentials["clave"]
 
     try:
         # Create the email
@@ -46,13 +46,13 @@ def send_email(
 
         # Connect to the SMTP server
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()  # Secure the connection
+            server.starttls()  # Upgrade the connection to a secure encrypted SSL/TLS connection
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipients, msg.as_string())
 
         return True
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        logging.error(f"Failed to send email: {e}")
         return False
 
 def fetch_recipients(national_id: str, supervisor_national_id: str, departments: List[str]) -> List[str]:

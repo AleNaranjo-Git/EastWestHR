@@ -32,7 +32,7 @@ class BirthdayPolicy:
         target_group_id: int
     ) -> Optional["BirthdayPolicy"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return None
@@ -76,12 +76,12 @@ class BirthdayPolicy:
             logging.error(f"Error creating birthday policy: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")
 
     @staticmethod
     def get_all_active_birthday_policies() -> List["BirthdayPolicy"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         policies: List[BirthdayPolicy] = []
         if conn is None:
             logging.error("Could not connect to the database.")
@@ -110,4 +110,4 @@ class BirthdayPolicy:
             logging.error(f"Error retrieving active birthday policies: {e}")
             return []
         finally:
-            conn.close()
+            db.close_connection("main")

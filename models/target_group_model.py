@@ -14,7 +14,7 @@ class TargetGroup:
     @staticmethod
     def get_target_group_by_id(target_group_id: int) -> Optional["TargetGroup"]:
         db = DatabaseConnection()
-        conn = db.connect()
+        conn = db.get_connection("main")
         if conn is None:
             logging.error("Could not connect to the database.")
             return None
@@ -38,4 +38,4 @@ class TargetGroup:
             logging.error(f"Error retrieving target group: {e}")
             return None
         finally:
-            conn.close()
+            db.close_connection("main")

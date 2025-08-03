@@ -14,7 +14,7 @@ class User:
 def get_all_users() -> List[User]:
     """Fetch all users with role names from the database."""
     db = DatabaseConnection()
-    conn = db.connect()
+    conn = db.get_connection("main")
     if conn is None:
         logging.error("Database connection failed.")
         return []
@@ -41,13 +41,13 @@ def get_all_users() -> List[User]:
         return []
     finally:
         if conn:
-            conn.close()
+            db.close_connection("main")
 
 
 def create_user(correo_login: str, password: str, cedula_empleado: str, role_name: str) -> Tuple[bool, str]:
     """Create a new user."""
     db = DatabaseConnection()
-    conn = db.connect()
+    conn = db.get_connection("main")
     if conn is None:
         logging.error("Database connection failed.")
         return False, "Error de conexión con la base de datos."
@@ -75,19 +75,19 @@ def create_user(correo_login: str, password: str, cedula_empleado: str, role_nam
             VALUES (?, ?, ?, ?)
         """, (correo_login, password_hash, cedula_empleado, id_rol))
         conn.commit()
-        return True, "User created successfully."
+        return True, "Usuario creado con éxito."
     except Exception as e:
         logging.error(f"Error creating user: {e}")
         return False, f"Error: {str(e)}"
     finally:
         if conn:
-            conn.close()
+            db.close_connection("main")
 
 
 def reset_password(correo_login: str, new_password: str) -> Tuple[bool, str]:
     """Reset a user's password."""
     db = DatabaseConnection()
-    conn = db.connect()
+    conn = db.get_connection("main")
     if conn is None:
         logging.error("Database connection failed.")
         return False, "Error de conexión con la base de datos."
@@ -105,10 +105,10 @@ def reset_password(correo_login: str, new_password: str) -> Tuple[bool, str]:
             WHERE correoLogin = ?
         """, (password_hash, correo_login))
         conn.commit()
-        return True, "Password reset successfully."
+        return True, "Contraseña restablecida con éxito."
     except Exception as e:
         logging.error(f"Error resetting password: {e}")
         return False, f"Error: {str(e)}"
     finally:
         if conn:
-            conn.close()
+            db.close_connection("main")
