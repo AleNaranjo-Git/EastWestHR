@@ -388,10 +388,10 @@ class PermitsPage(QWidget):
             
     def notify_permit_request(self, national_id: str, request_date: date, absence_date: date, permit_type_name: str):
         """
-        Notify relevant departments and the supervisor about a vacation request.
+        Notify relevant emails and the supervisor about a permit request.
         """
-        # Define the departments to notify
-        departments = ["TestEmail", "AnotherDepartment"]
+         # Define the additional emails to notify
+        additional_emails = ["ebarrantes@ewmfg.com", "ocastillo@ewmfg.com", "groman@ewmfg.com", "sbolivar@ewmfg.com"]
 
         # Fetch employee information
         employee_info = Employee.get_employee_by_national_id(national_id)
@@ -409,20 +409,18 @@ class PermitsPage(QWidget):
                 logging.warning(f"No national ID found for supervisor: {employee_info.supervisor}.")
 
         # Fetch recipients
-        recipients = fetch_recipients(employee_info.national_id, supervisor_id, departments)  # type: ignore
+        recipients = fetch_recipients(employee_info.national_id, supervisor_id, additional_emails)  # type: ignore
         if not recipients:
             show_warning_dialog(self, "Error", "No se encontraron destinatarios para el correo.")
             logging.warning("No recipients found for the email.")
             return
 
         # Email details
-        subject = "Solicitud de Permiso"
+        subject = "Solicitud Permiso"
         body = (
-            f"Por la presente, se informa que el colaborador {employee_info.first_name} {employee_info.last_name_1} "
-            f"({employee_info.national_id}) ha realizado una solicitud de permiso con los siguientes detalles:\n\n"
-            f"Fecha de solicitud: {request_date.strftime('%d/%m/%Y')}\n"
-            f"Fecha de ausencia: {absence_date.strftime('%d/%m/%Y')}\n"
-            f"Tipo de permiso: {permit_type_name}"
+            f"Se le informa que el trabajador {employee_info.first_name.strip()} {employee_info.last_name_1.strip()} {employee_info.last_name_2.strip()} ha\n"
+            f"solicitado un permiso para el día {absence_date.strftime('%d/%m/%Y')}.\n\n"
+            f"Por favor proceda a aprobar o denegar la solicitud.\n\n"
         )
 
         # Send the email

@@ -36,7 +36,7 @@ class Employee:
         Fetch an employee from VistaEmpleados by their national ID (cedula).
         """
         db = DatabaseConnection()
-        conn = db.get_connection("vistaEmpleados")
+        conn = db.get_connection("secondary")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -51,15 +51,15 @@ class Employee:
             if row:
                 return Employee(
                     employee_id=None,
-                    last_name_1=row[0].strip(),
-                    last_name_2=row[1].strip(),
-                    first_name=row[2].strip(),
-                    national_id=row[3].strip(),
+                    national_id=row[0].strip(),
+                    last_name_1=row[1].strip(),
+                    last_name_2=row[2].strip(),
+                    first_name=row[3].strip(),
                     department=row[4],
                     position=row[5],
-                    hire_date=row[6],
-                    supervisor=row[7],
-                    email=row[8].strip(),
+                    supervisor=row[6],
+                    email=row[7].strip(),
+                    hire_date=row[8],
                     birth_date=row[9] if row[9] else None
                 )
             logging.warning(f"No employee found with national_id: {national_id[:8].strip()}...")
@@ -68,7 +68,7 @@ class Employee:
             logging.error(f"Error searching for employee: {e}")
             return None
         finally:
-            db.close_connection("vistaEmpleados")
+            db.close_connection("secondary")
 
     @staticmethod
     def get_full_name_by_national_id(national_id: str) -> Optional[str]:
@@ -76,7 +76,7 @@ class Employee:
         Fetch the full name of an employee from VistaEmpleados by their national ID (cedula).
         """
         db = DatabaseConnection()
-        conn = db.get_connection("vistaEmpleados")
+        conn = db.get_connection("secondary")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -100,7 +100,7 @@ class Employee:
             logging.error(f"Error fetching full name for national_id {national_id}: {e}")
             return None
         finally:
-            db.close_connection("vistaEmpleados")
+            db.close_connection("secondary")
 
     @staticmethod
     def get_national_id_by_full_name(full_name: str) -> Optional[str]:
@@ -108,7 +108,7 @@ class Employee:
         Fetch the national ID (cedula) of an employee from VistaEmpleados by their full name.
         """
         db = DatabaseConnection()
-        conn = db.get_connection("vistaEmpleados")
+        conn = db.get_connection("secondary")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -141,12 +141,12 @@ class Employee:
             logging.error(f"Error fetching national ID for full name {full_name}: {e}")
             return None
         finally:
-            db.close_connection("vistaEmpleados")
+            db.close_connection("secondary")
 
     @staticmethod
     def get_email_by_national_id(national_id: str) -> Optional[str]:
         db = DatabaseConnection()
-        conn = db.get_connection("vistaEmpleados")
+        conn = db.get_connection("secondary")
         if conn is None:
             logging.error("No database connection available.")
             return None
@@ -166,7 +166,7 @@ class Employee:
             logging.error(f"Error fetching email by national_id: {e}")
             return None
         finally:
-            db.close_connection("vistaEmpleados")
+            db.close_connection("secondary")
 
     @staticmethod
     def get_emails_by_departments(departments: List[str]) -> List[str]:
@@ -175,7 +175,7 @@ class Employee:
             return []
 
         db = DatabaseConnection()
-        conn = db.get_connection("vistaEmpleados")
+        conn = db.get_connection("secondary")
         if conn is None:
             logging.error("No database connection available.")
             return []
@@ -192,4 +192,4 @@ class Employee:
             logging.error(f"Error fetching emails by departments: {e}")
             return []
         finally:
-            db.close_connection("vistaEmpleados")
+            db.close_connection("secondary")

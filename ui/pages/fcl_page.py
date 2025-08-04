@@ -14,6 +14,8 @@ from logic.auth import Session
 from models.fcl_model import FCL
 from datetime import date
 from utils.dialog_utils import show_critical_dialog, show_information_dialog, show_warning_dialog
+from logic.email_service import send_email, fetch_recipients
+import logging
 
 class FCLPage(QWidget):
     def __init__(self):
@@ -205,9 +207,46 @@ class FCLPage(QWidget):
 
         if fcl_id:
             show_information_dialog(self, "Éxito", "Solicitud de FCL creada exitosamente.")
+            self.notify_fcl_request(national_id)  # Notify via email
             self.reset_form()  # Reset the form after successful submission
         else:
             show_critical_dialog(self, "Error", "Error al crear la solicitud de FCL. Por favor, intente nuevamente.")
+
+    def notify_fcl_request(self, national_id: str) -> None:
+        """
+        Notify relevant emails about an FCL request.
+        """
+        # Define the additional emails to notify
+        additional_emails = ["groman@ewmfg.com", "sbolivar@ewmfg.com"]
+
+        # Fetch employee information
+        employee_info = EmployeeLogic.get_employee_full_info_by_national_id(national_id)
+        if not employee_info:
+            show_warning_dialog(self, "Error", f"No se encontró información del colaborador con cédula: {national_id}.")
+            logging.warning(f"No employee found with National ID: {national_id}.")
+            return
+
+        # Fetch recipients (only the employee and additional emails)
+        recipients = fetch_recipients(None, None, additional_emails)  # type: ignore
+        if not recipients:
+            show_warning_dialog(self, "Error", "No se encontraron destinatarios para el correo.")
+            logging.warning("No recipients found for the email.")
+            return
+
+        # Email details
+        subject = "Solicitud de FCL"
+        body = (
+            f"{employee_info['first_name'].strip()} {employee_info['last_name_1'].strip()} {employee_info['last_name_2'].strip()} "
+            f"ha generado una solicitud de documento FCL."
+        )
+
+        # Send the email
+        if send_email(subject, body, recipients):
+            show_information_dialog(self, "Éxito", "El correo de notificación se envió correctamente.")
+            logging.info(f"Email sent successfully for FCL request by employee with National ID: {national_id}.")
+        else:
+            show_warning_dialog(self, "Error", "No se pudo enviar el correo de notificación.")
+            logging.error(f"Failed to send email for FCL request by employee with National ID: {national_id}.")
 
     def reset_form(self):
         """

@@ -14,6 +14,8 @@ from logic.auth import Session
 from models.salary_certificate_model import SalaryCertificate
 from datetime import date
 from utils.dialog_utils import show_critical_dialog, show_information_dialog, show_warning_dialog
+from logic.email_service import send_email, fetch_recipients
+import logging
 
 class SalaryCertificatePage(QWidget):
     def __init__(self):
@@ -219,9 +221,46 @@ class SalaryCertificatePage(QWidget):
 
         if certificate_id:
             show_information_dialog(self, "Éxito", "Solicitud de constancia salarial solicitado exitosamente.")
+            self.notify_salary_certificate_request(national_id)  # Notify via email
             self.reset_form()
         else:
             show_critical_dialog(self, "Error", "Error al crear la solicitud de constancia de salario. Por favor, intente nuevamente.")
+
+    def notify_salary_certificate_request(self, national_id: str) -> None:
+        """
+        Notify relevant emails about a salary certificate request.
+        """
+        # Define the additional emails to notify
+        additional_emails = ["groman@ewmfg.com", "sbolivar@ewmfg.com"]
+
+        # Fetch employee information
+        employee_info = EmployeeLogic.get_employee_full_info_by_national_id(national_id)
+        if not employee_info:
+            show_warning_dialog(self, "Error", f"No se encontró información del colaborador con cédula: {national_id}.")
+            logging.warning(f"No employee found with National ID: {national_id}.")
+            return
+
+        # Fetch recipients (only the employee and additional emails)
+        recipients = fetch_recipients(None, None, additional_emails)  # type: ignore
+        if not recipients:
+            show_warning_dialog(self, "Error", "No se encontraron destinatarios para el correo.")
+            logging.warning("No recipients found for the email.")
+            return
+
+        # Email details
+        subject = "Solicitud de Constancia Salarial"
+        body = (
+            f"{employee_info['first_name'].strip()} {employee_info['last_name_1'].strip()} {employee_info['last_name_2'].strip()} "
+            f"ha generado una solicitud de constancia salarial."
+        )
+
+        # Send the email
+        if send_email(subject, body, recipients):
+            show_information_dialog(self, "Éxito", "El correo de notificación se envió correctamente.")
+            logging.info(f"Email sent successfully for salary certificate request by employee with National ID: {national_id}.")
+        else:
+            show_warning_dialog(self, "Error", "No se pudo enviar el correo de notificación.")
+            logging.error(f"Failed to send email for salary certificate request by employee with National ID: {national_id}.")
 
     def reset_form(self):
         """

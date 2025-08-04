@@ -1,0 +1,194 @@
+USE [Permisos_Vacaciones]
+GO
+
+-- =========================
+-- Creación de tablas
+-- =========================
+
+CREATE TABLE [dbo].[CertificadoSalario](
+    [idCertificadoSalario] [int] IDENTITY(1,1) NOT NULL,
+    [fechaSolicitud] [date] NULL,
+    [cedulaEmpleado] [char](20) NULL,
+    [documentoGenerado] [bit] NOT NULL,
+    CONSTRAINT PK_CertificadoSalario PRIMARY KEY CLUSTERED ([idCertificadoSalario] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[FCL](
+    [idFCL] [int] IDENTITY(1,1) NOT NULL,
+    [fechaSolicitud] [date] NULL,
+    [cedulaEmpleado] [char](20) NULL,
+    [documentoGenerado] [bit] NOT NULL,
+    CONSTRAINT PK_FCL PRIMARY KEY CLUSTERED ([idFCL] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[GrupoObjetivo](
+    [idGrupoObjetivo] [int] IDENTITY(1,1) NOT NULL,
+    [nombreGrupoObjetivo] [varchar](15) NULL,
+    CONSTRAINT PK_GrupoObjetivo PRIMARY KEY CLUSTERED ([idGrupoObjetivo] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[PoliticaAniosExperiencia](
+    [idPoliticaAniosExperiencia] [int] IDENTITY(1,1) NOT NULL,
+    [aniosDesde] [int] NULL,
+    [aniosHasta] [int] NULL,
+    [diasPermitidos] [int] NULL,
+    [condicionVacaciones] [varchar](10) NULL,
+    [fechaInicioVigencia] [date] NULL,
+    [fechaFinVigencia] [date] NULL,
+    [activo] [bit] NULL,
+    [idGrupoObjetivo] [int] NULL,
+    [idRolAprobacion] [int] NULL,
+    CONSTRAINT PK_PoliticaAniosExperiencia PRIMARY KEY CLUSTERED ([idPoliticaAniosExperiencia] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[PoliticaCumpleanios](
+    [idPoliticaCumpleanios] [int] IDENTITY(1,1) NOT NULL,
+    [rangoDiasDisponibles] [int] NULL,
+    [soloMesCumpleanios] [bit] NULL,
+    [fechaInicioVigencia] [date] NULL,
+    [fechaFinVigencia] [date] NULL,
+    [activo] [bit] NULL,
+    [idGrupoObjetivo] [int] NULL,
+    CONSTRAINT PK_PoliticaCumpleanios PRIMARY KEY CLUSTERED ([idPoliticaCumpleanios] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[Rol](
+    [idRol] [int] IDENTITY(1,1) NOT NULL,
+    [nombreRol] [varchar](50) NULL,
+    CONSTRAINT PK_Rol PRIMARY KEY CLUSTERED ([idRol] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[SolicitudPermiso](
+    [idSolicitudPermiso] [int] IDENTITY(1,1) NOT NULL,
+    [fechaSolicitud] [date] NULL,
+    [fechaAusencia] [date] NULL,
+    [horaEntrada] [time](7) NULL,
+    [horaSalida] [time](7) NULL,
+    [estado] [varchar](20) NULL,
+    [numeroSemana] [int] NULL,
+    [cedulaEmpleado] [char](20) NULL,
+    [idTipoPermiso] [int] NULL,
+    [cedulaAprobador] [char](20) NULL,
+    CONSTRAINT PK_SolicitudPermiso PRIMARY KEY CLUSTERED ([idSolicitudPermiso] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[SolicitudVacaciones](
+    [idSolicitudVacaciones] [int] IDENTITY(1,1) NOT NULL,
+    [fechaSolicitud] [date] NULL,
+    [fechaInicio] [date] NULL,
+    [fechaFin] [date] NULL,
+    [totalDias] [int] NULL,
+    [estado] [varchar](20) NULL,
+    [numeroSemana] [int] NULL,
+    [cedulaEmpleado] [char](20) NULL,
+    [cedulaAprobador] [char](20) NULL,
+    CONSTRAINT PK_SolicitudVacaciones PRIMARY KEY CLUSTERED ([idSolicitudVacaciones] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[TipoPermiso](
+    [idTipoPermiso] [int] IDENTITY(1,1) NOT NULL,
+    [nombreTipoPermiso] [varchar](40) NULL,
+    [activo] [bit] NULL,
+    CONSTRAINT PK_TipoPermiso PRIMARY KEY CLUSTERED ([idTipoPermiso] ASC)
+)
+GO
+
+CREATE TABLE [dbo].[Usuario](
+    [idUsuario] [int] IDENTITY(1,1) NOT NULL,
+    [correoLogin] [varchar](100) NOT NULL,
+    [contrasenaHash] [varchar](255) NOT NULL,
+    [cedulaEmpleado] [char](20) NULL,
+    [idRol] [int] NULL,
+    CONSTRAINT PK_Usuario PRIMARY KEY CLUSTERED ([idUsuario] ASC),
+    CONSTRAINT UQ_Usuario UNIQUE NONCLUSTERED ([correoLogin] ASC)
+)
+GO
+
+-- Relaciones
+ALTER TABLE [dbo].[CertificadoSalario] ADD DEFAULT ((0)) FOR [documentoGenerado];
+ALTER TABLE [dbo].[FCL] ADD DEFAULT ((0)) FOR [documentoGenerado];
+
+ALTER TABLE [dbo].[PoliticaAniosExperiencia]  WITH CHECK ADD FOREIGN KEY([idGrupoObjetivo])
+REFERENCES [dbo].[GrupoObjetivo] ([idGrupoObjetivo]);
+
+ALTER TABLE [dbo].[PoliticaAniosExperiencia]  WITH CHECK ADD FOREIGN KEY([idRolAprobacion])
+REFERENCES [dbo].[Rol] ([idRol]);
+
+ALTER TABLE [dbo].[PoliticaCumpleanios]  WITH CHECK ADD FOREIGN KEY([idGrupoObjetivo])
+REFERENCES [dbo].[GrupoObjetivo] ([idGrupoObjetivo]);
+
+ALTER TABLE [dbo].[SolicitudPermiso]  WITH CHECK ADD FOREIGN KEY([idTipoPermiso])
+REFERENCES [dbo].[TipoPermiso] ([idTipoPermiso]);
+
+ALTER TABLE [dbo].[Usuario]  WITH CHECK ADD FOREIGN KEY([idRol])
+REFERENCES [dbo].[Rol] ([idRol]);
+GO
+
+-- =========================
+-- Inserts iniciales
+-- =========================
+
+-- 1. GrupoObjetivo
+INSERT INTO [dbo].[GrupoObjetivo] ([nombreGrupoObjetivo])
+VALUES 
+('Administrativo'),
+('Operativo'),
+('Todos');
+
+-- 2. Rol
+INSERT INTO [dbo].[Rol] ([nombreRol])
+VALUES 
+('Administrador'),
+('Supervisor'),
+('RRHH'),
+('Operario');
+
+-- 3. PoliticaAniosExperiencia
+INSERT INTO [dbo].[PoliticaAniosExperiencia] 
+([aniosDesde],[aniosHasta],[diasPermitidos],[condicionVacaciones],[fechaInicioVigencia],[fechaFinVigencia],[activo],[idGrupoObjetivo],[idRolAprobacion])
+VALUES
+(3, 5, 2, 'GE_10', '2024-01-01', NULL, 0, 3, 3),
+(6, 8, 3, 'GE_10', '2024-01-01', NULL, 0, 3, 3),
+(9, NULL, 4, 'GE_10', '2024-01-01', NULL, 0, 3, 3),
+(2, 2, 1, 'LT_10', '2024-01-01', NULL, 1, 3, 3),
+(3, 4, 2, 'LT_10', '2024-01-01', NULL, 1, 3, 3),
+(5, 6, 3, 'LT_10', '2024-01-01', NULL, 1, 3, 3),
+(7, 8, 4, 'LT_10', '2024-01-01', NULL, 1, 3, 3),
+(9, NULL, 5, 'LT_10', '2024-01-01', NULL, 1, 3, 3);
+
+-- 4. PoliticaCumpleanios
+INSERT INTO [dbo].[PoliticaCumpleanios]
+([rangoDiasDisponibles],[soloMesCumpleanios],[fechaInicioVigencia],[fechaFinVigencia],[activo],[idGrupoObjetivo])
+VALUES (7, 1, '2024-01-01', NULL, 1, 3);
+
+-- 5. TipoPermiso
+INSERT INTO [dbo].[TipoPermiso] ([nombreTipoPermiso],[activo])
+VALUES
+('Feriado no obligatorio', 1),
+('Permiso de estudios', 1),
+('Permiso con goce salarial', 1),
+('Permiso sin goce salarial', 1),
+('Consulta médica', 1),
+('Beneficio cumpleaños', 1),
+('Beneficio años de experiencia', 1);
+
+
+
+INSERT INTO [dbo].[Usuario] (
+    [correoLogin],
+    [contrasenaHash],
+    [cedulaEmpleado],
+    [idRol]
+)
+VALUES
+('Diego', '$2b$12$6lHlmwE6LdNl6VcjACiv8eCRluZiHavrKRCemegq3fAS4hUtmobk6', '205480858', 1)
+
+
