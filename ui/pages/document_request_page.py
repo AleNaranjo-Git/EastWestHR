@@ -349,10 +349,10 @@ class DocumentRequestPage(QWidget):
         # Generate the document
         success = generate_salary_certificate(save_path, template_path, {
             "fecha": format_date_spanish(date.today()),
-            "nombre": selected_request["employee_name"],
+            "nombre": to_camel_case(selected_request["employee_name"]),
             "numeroCedula": selected_request["employee_national_id"],
             "fechaIngreso": format_date_spanish(employee.hire_date) if employee else "Desconocido",
-            "puesto": employee.position if employee else "Desconocido"
+            "puesto": to_camel_case(employee.position) if employee else "Desconocido"
         })
 
         if success:
@@ -388,11 +388,11 @@ class DocumentRequestPage(QWidget):
         # Generate the document
         success = generate_fcl(save_path, template_path, {
             "fecha": format_date_spanish(date.today()),
-            "nombre": selected_request["employee_name"],
+            "nombre": to_camel_case(selected_request["employee_name"]),
             "numeroCedula": selected_request["employee_national_id"],
-            "puesto": employee.position if employee else "Desconocido",
+            "puesto": to_camel_case(employee.position) if employee else "Desconocido",
             "fechaIngreso": format_date_spanish(employee.hire_date) if employee else "Desconocido",
-            "primerApellido": employee.last_name_1 if employee else "Desconocido"
+            "primerApellido": to_camel_case(employee.last_name_1) if employee else "Desconocido"
         })
 
         if success:
@@ -421,3 +421,11 @@ def format_date_spanish(date_obj: date) -> str:
     month = months_spanish[date_obj.month]
     year = date_obj.year
     return f"{day} de {month} del {year}"
+
+def to_camel_case(name: str) -> str:
+    """
+    Converts a string to Camel Case, handling exceptions for specific words.
+    """
+    exceptions = {"de", "la", "del", "y"}  # Words to keep lowercase
+    words = name.lower().split()
+    return " ".join(word.capitalize() if word not in exceptions else word for word in words)
