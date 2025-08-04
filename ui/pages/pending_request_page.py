@@ -388,12 +388,11 @@ class PendingRequestPage(QWidget):
             # Proceed with approval
             if req.type_ == "Permiso":
                 PermitRequest.update_status(req.request_id, "Aprobado")
+                self.notify_request(req, "Aprobación", "permiso", "aprobada")
             elif req.type_ == "Vacacion":
                 VacationRequest.update_status(req.request_id, "Aprobado")
-                
-            # Notify the user via email
-            self.notify_request(req, "Aprobación", "aprobada")
-            
+                self.notify_request(req, "Aprobación", "vacaciones", "aprobada")
+
             self.load_requests()  # Refresh table
 
     def deny_selected(self):
@@ -415,12 +414,11 @@ class PendingRequestPage(QWidget):
             # Proceed with denial
             if req.type_ == "Permiso":
                 PermitRequest.update_status(req.request_id, "Denegado")
+                self.notify_request(req, "Denegación", "permiso", "denegada")
             elif req.type_ == "Vacacion":
                 VacationRequest.update_status(req.request_id, "Denegado")
-                
-            # Notify the user via email
-            self.notify_request(req, "Denegación", "denegada")
-                
+                self.notify_request(req,"Denegación", "vacaciones", "denegada")
+
             self.load_requests()  # Refresh table
     
     def toggle_filter_panel(self):
@@ -429,13 +427,13 @@ class PendingRequestPage(QWidget):
             self.filter_button.setText(" Ocultar filtros")
         else:
             self.filter_button.setText(" Filtrar tabla")
-            
-    def notify_request(self, req: "UnifiedRequest", action: str, solStatus: str) -> None:
+
+    def notify_request(self, req: "UnifiedRequest", action: str, requestType: str, solStatus: str) -> None:
         """
-        Notify relevant departments and the supervisor about a vacation request.
+        Notify relevant emails and the supervisor about a vacation request.
         """
-        # Define the departments to notify
-        departments = ["TestEmail", "AnotherDepartment"]
+        # Define the additional emails to notify
+        additional_emails = ["ebarrantes@ewmfg.com", "ocastillo@ewmfg.com", "groman@ewmfg.com", "sbolivar@ewmfg.com"]
 
         # Fetch employee information
         employee_info = Employee.get_employee_by_national_id(req.employee_national_id)
@@ -453,22 +451,18 @@ class PendingRequestPage(QWidget):
                 logging.warning(f"No national ID found for supervisor: {employee_info.supervisor}.")
 
         # Fetch recipients
-        recipients = fetch_recipients(req.employee_national_id, supervisor_id, departments) #type: ignore
+        recipients = fetch_recipients(req.employee_national_id, supervisor_id, additional_emails) #type: ignore
         if not recipients:
             show_warning_dialog(self, "Error", "No se encontraron destinatarios para el correo.")
             logging.warning("No recipients found for the email.")
             return
 
         # Email details
-        subject = f"{action} de Solicitud de {req.type_}"
+        subject = f"{action} de {requestType}"
         body = (
-            f"Estimado/a {employee_info.first_name} {employee_info.last_name_1},\n\n"
-            f"Por la presente, se le informa que su solicitud de {req.type_} ha sido {solStatus}. A continuación, se detallan los datos de su solicitud:\n\n"
-            f"- Nombre del Colaborador: {employee_info.first_name} {employee_info.last_name_1}\n"
-            f"- Identificación: {employee_info.national_id}\n"
-            f"- Fecha de Inicio: {req.start_date.strftime('%d/%m/%Y')}\n"
-            f"- Fecha de Finalización: {req.end_date.strftime('%d/%m/%Y')}\n"
-            f"- Cantidad de Días: {req.total_days}\n\n"
+            f"Se le informa que su solicitud de {requestType} para el día {req.start_date.strftime('%d/%m/%Y')}\n"
+            f"fue {solStatus}.\n\n"
+            f"Cualquier duda adicional por favor dirigirse con su jefatura inmediata.\n\n"
         )
 
         # Send the email
