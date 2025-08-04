@@ -10,8 +10,8 @@ def send_email(
     subject: str,
     body: str,
     recipients: List[str],
-    smtp_server: str = "smtp.gmail.com",
-    smtp_port: int = 587,
+    smtp_server: str = "smtp.office365.com",  # Cambiado a Microsoft 365
+    smtp_port: int = 587,  # Puerto para Microsoft 365
 ) -> bool:
     """
     Sends an email using the provided SMTP server.
@@ -20,13 +20,13 @@ def send_email(
         subject (str): The subject of the email.
         body (str): The body of the email.
         recipients (List[str]): A list of recipient email addresses.
-        smtp_server (str): The SMTP server address (default: "smtp.gmail.com").
+        smtp_server (str): The SMTP server address (default: "smtp.office365.com").
         smtp_port (int): The SMTP server port (default: 587).
 
     Returns:
         bool: True if the email was sent successfully, False otherwise.
     """
-    # obtain the credentials from the database
+    # Obtain the credentials from the database
     credentials = EmailCredentials.get_credentials()
 
     if not credentials:
