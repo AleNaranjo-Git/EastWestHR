@@ -10,8 +10,8 @@ def send_email(
     subject: str,
     body: str,
     recipients: List[str],
-    smtp_server: str = "smtp.gmail.com",
-    smtp_port: int = 587,
+    smtp_server: str = "smtp.office365.com",  # Cambiado a Microsoft 365
+    smtp_port: int = 587,  # Puerto para Microsoft 365
 ) -> bool:
     """
     Sends an email using the provided SMTP server.
@@ -20,13 +20,13 @@ def send_email(
         subject (str): The subject of the email.
         body (str): The body of the email.
         recipients (List[str]): A list of recipient email addresses.
-        smtp_server (str): The SMTP server address (default: "smtp.gmail.com").
+        smtp_server (str): The SMTP server address (default: "smtp.office365.com").
         smtp_port (int): The SMTP server port (default: 587).
 
     Returns:
         bool: True if the email was sent successfully, False otherwise.
     """
-    # obtain the credentials from the database
+    # Obtain the credentials from the database
     credentials = EmailCredentials.get_credentials()
 
     if not credentials:
@@ -55,31 +55,42 @@ def send_email(
         logging.error(f"Failed to send email: {e}")
         return False
 
-def fetch_recipients(national_id: str, supervisor_national_id: str, departments: List[str]) -> List[str]:
+def fetch_recipients(national_id: str, supervisor_national_id: str, additional_emails: List[str]) -> List[str]:
     """
-    Fetches the email recipients based on the employee's national ID and departments.
+    Fetches the email recipients based on the employee's national ID, supervisor's national ID, 
+    and a list of additional email addresses.
 
     Args:
-        national_id (str): The national ID of the employee.
-        departments (List[str]): A list of department names.
+        national_id (str): The national ID of the employee (can be None).
+        supervisor_national_id (str): The national ID of the supervisor (can be None).
+        additional_emails (List[str]): A list of additional email addresses.
 
     Returns:
         List[str]: A list of email addresses to send the email to.
     """
     recipients: List[str] = []
 
-    # Fetch the employee's email
-    employee_email = Employee.get_email_by_national_id(national_id)
-    if employee_email:
-        recipients.append(employee_email)
-        
-    # Fetch the supervisor's email
-    supervisor_email = Employee.get_email_by_national_id(supervisor_national_id)
-    if supervisor_email:
-        recipients.append(supervisor_email)
+    # Fetch the employee's email if national_id is provided
+    if national_id:
+        employee_email = Employee.get_email_by_national_id(national_id)
+        if employee_email:
+            recipients.append(employee_email)
+        else:
+            logging.warning(f"No email found for national_id: {national_id}")
+    else:
+        logging.info("No national_id provided, skipping employee email.")
 
-    # Fetch department-specific emails
-    department_emails = Employee.get_emails_by_departments(departments)
-    recipients.extend(department_emails)
+    # Fetch the supervisor's email if supervisor_national_id is provided
+    if supervisor_national_id:
+        supervisor_email = Employee.get_email_by_national_id(supervisor_national_id)
+        if supervisor_email:
+            recipients.append(supervisor_email)
+        else:
+            logging.warning(f"No email found for supervisor_national_id: {supervisor_national_id}")
+    else:
+        logging.info("No supervisor_national_id provided, skipping supervisor email.")
+
+    # Add the additional emails
+    recipients.extend(additional_emails)
 
     return recipients
